@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ProxyConfig
+metadata:
+  name: default
+  namespace: shop
+spec:
+  environmentVariables:
+    ISTIO_META_DNS_CAPTURE: 'true'
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: wp
+  namespace: shop
+spec:
+  hosts: [wp.pl]
+  addresses: [198.51.100.10]
+  exportTo: [.]
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports: [{number: 80, name: http, protocol: HTTP}]

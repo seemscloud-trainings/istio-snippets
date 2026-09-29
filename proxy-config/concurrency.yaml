@@ -1,0 +1,7 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ProxyConfig
+metadata:
+  name: default
+  namespace: shop
+spec:
+  concurrency: 2
