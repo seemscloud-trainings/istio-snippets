@@ -8,7 +8,7 @@ metadata:
   namespace: prod-playground-trouble
 spec:
   host: playground-trouble.prod-playground-trouble.svc.cluster.local
-  exportTo: ['*']
+  exportTo: [.]
   trafficPolicy:
     loadBalancer:
       simple: ROUND_ROBIN
@@ -53,7 +53,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http:
   - name: trouble-healthy
     match: [{gateways: [mesh], uri: {exact: /test/cosmos-healthy}}]
@@ -82,7 +82,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http: [{name: trouble-retry, match: [{gateways: [mesh], uri: {exact: /test/cosmos-retry}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 2, perTryTimeout: 1s, retryOn: 5xx, retryIgnorePreviousHosts: true}, timeout: 10s}]
 ```
 
@@ -99,7 +99,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http: [{name: trouble-retry-timeout, match: [{gateways: [mesh], uri: {exact: /test/cosmos-retry-timeout}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 2, perTryTimeout: 500ms, retryOn: 5xx, retryIgnorePreviousHosts: true}, timeout: 3s}]
 ```
 
@@ -116,7 +116,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http: [{name: trouble-fault-abort, match: [{gateways: [mesh], uri: {exact: /test/cosmos-fault-abort}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s, fault: {abort: {httpStatus: 503, percentage: {value: 50}}}}]
 ```
 
@@ -133,7 +133,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http:
   - name: trouble-healthy
     match: [{gateways: [mesh], uri: {exact: /test/cosmos-healthy}}]
@@ -167,7 +167,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http:
   - name: trouble-header-fault
     match: [{gateways: [mesh], uri: {exact: /test/cosmos-header-fault}, headers: {x-demo-fault: {exact: 'yes'}}}]
@@ -201,7 +201,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http: [{name: trouble-connections, match: [{gateways: [mesh], uri: {exact: /test/cosmos-connections}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: connections, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s}]
 ```
 
@@ -218,7 +218,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http: [{name: trouble-timeout, match: [{gateways: [mesh], uri: {exact: /test/cosmos-timeout}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: connections, port: {number: 80}}}], retries: {attempts: 0}, timeout: 1s}]
 ```
 
@@ -235,7 +235,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http: [{name: trouble-no-retry, match: [{gateways: [mesh]}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s}]
 ```
 
@@ -252,7 +252,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http: [{name: trouble-rate-limit, match: [{gateways: [mesh], uri: {exact: /test/cosmos-rate-limit}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s}]
 ---
 apiVersion: networking.istio.io/v1alpha3
@@ -261,9 +261,6 @@ metadata:
   name: local-rate-limit
   namespace: prod-playground-trouble
 spec:
-  workloadSelector:
-    labels:
-      app.kubernetes.io/name: playground-trouble
   configPatches:
   - applyTo: HTTP_FILTER
     match:

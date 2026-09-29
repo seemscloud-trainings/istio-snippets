@@ -41,7 +41,7 @@ def outgoing(namespace, imported=True, passthrough=False):
     known = (f"api.{namespace}: imported", "Route to service endpoints")
     unknown = (f"api.{namespace}: not imported",
                f"ALLOW_ANY → {service_ip}" if passthrough else "REGISTRY_ONLY → 503")
-    return Case("shop/client · app=client",
+    return Case("shop/client",
                 (f"curl http://api.{namespace}/orders",),
                 known if imported else unknown, imported or passthrough,
                 "HTTP" if passthrough else "mTLS", f"{namespace}/api")
@@ -49,7 +49,7 @@ def outgoing(namespace, imported=True, passthrough=False):
 
 def peer(account, path="orders", method="GET", *, decision, allowed, plaintext=False):
     command = f"curl {'-X POST ' if method == 'POST' else ''}http://api.shop/{path}"
-    return Case(f"shop/{account}-plain · app=plain" if plaintext else f"shop/{account} · SA={account}",
+    return Case(f"shop-plain/{account} · SA={account}" if plaintext else f"shop/{account} · SA={account}",
                 (command, f"SA: {account} · tls.mode: DISABLE") if plaintext else (command,),
                 decision, allowed, "HTTP" if plaintext else "mTLS",
                 result=(f"200 · {method} /{path}",))
@@ -110,17 +110,14 @@ EXAMPLES = (
 
 def summary(resource):
     kind, spec = resource["kind"], resource["spec"]
-    selector = (spec["workloadSelector"]["labels"] if kind == "Sidecar" else
-                spec["workloadSelector"]["matchLabels"] if kind == "DestinationRule" else
-                spec["selector"]["matchLabels"])
-    label = selector["app"]
-    lines = [f"namespace: {resource['metadata']['namespace']} · app={label}"]
+    lines = [f"namespace: {resource['metadata']['namespace']} · all workloads"]
     if kind == "Sidecar":
         lines.append("outboundTrafficPolicy: " + spec["outboundTrafficPolicy"]["mode"])
         lines.append("hosts: " + ", ".join(spec["egress"][0]["hosts"][:2]))
         lines.extend(spec["egress"][0]["hosts"][2:])
     elif kind == "DestinationRule":
         lines.extend(["host: " + spec["host"], "tls.mode: " + spec["trafficPolicy"]["tls"]["mode"]])
+        lines.append("exportTo: [" + ", ".join(spec["exportTo"]) + "]")
     elif kind == "PeerAuthentication":
         lines.append("mtls.mode: " + spec["mtls"]["mode"])
     elif kind == "RequestAuthentication":
@@ -166,7 +163,7 @@ def draw(example, resources):
         sidecar = example.topic == "sidecar"
         frame_x, frame_w = (40, 1100) if sidecar else (650, 960)
         c.box(frame_x, y, frame_w, 211, "white", BORDER)
-        c.text(frame_x + 20, y + 13, f"Pod {case.source if sidecar else 'shop/api · app=api'}", 22, MUTED, True)
+        c.text(frame_x + 20, y + 13, f"Pod {case.source if sidecar else 'shop/api'}", 22, MUTED, True)
         if sidecar:
             c.text(1280, y + 13, f"Pod {case.target}", 22, MUTED, True)
         else:

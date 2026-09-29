@@ -7,9 +7,6 @@ metadata:
   name: client-egress
   namespace: shop
 spec:
-  workloadSelector:
-    labels:
-      app: client
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
   egress: [{hosts: [./*, istio-system/*]}]
@@ -26,9 +23,6 @@ metadata:
   name: client-egress
   namespace: shop
 spec:
-  workloadSelector:
-    labels:
-      app: client
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
   egress: [{hosts: [./*, istio-system/*, payments/api.payments.svc.cluster.local]}]
@@ -45,9 +39,6 @@ metadata:
   name: client-egress
   namespace: shop
 spec:
-  workloadSelector:
-    labels:
-      app: client
   outboundTrafficPolicy:
     mode: ALLOW_ANY
   egress: [{hosts: [./*, istio-system/*]}]

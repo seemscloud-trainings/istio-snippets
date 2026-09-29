@@ -13,6 +13,7 @@ from yaml_style import dump_documents
 ROOT = Path(__file__).resolve().parents[1]
 MANIFESTS = ROOT / "virtual-service"
 HOST = yaml.safe_load((MANIFESTS / "trouble.yaml").read_text())["spec"]["hosts"][0]
+NAMESPACE = yaml.safe_load((MANIFESTS / "trouble.yaml").read_text())["metadata"]["namespace"]
 
 
 def case(path, envoy, backend, *, reaches=True, header=False, inbound=False,
@@ -80,8 +81,8 @@ def render(slug, settings, cases):
     for i, item in enumerate(cases):
         y = top + i * 270
         c.box(35, y, 1210, 250, "white", BORDER)
-        c.text(60, y + 12, "Client Pod", 23, MUTED, True)
-        c.text(1350, y + 12, "Trouble Pods", 23, MUTED, True)
+        c.text(60, y + 12, f"Client Pod · {NAMESPACE}", 23, MUTED, True)
+        c.text(1350, y + 12, "Trouble Pods · same namespace", 23, MUTED, True)
         c.card(60, y + 48, 610, 185, "Container", item["command"], "app")
         c.card(780, y + 48, 430, 185, "Envoy", item["envoy"], "blocked" if item["problem"] else "proxy")
         c.card(1350, y + 48, 400, 185, "Inbound Envoy" if item["inbound"] else "Envoy → API",
@@ -130,13 +131,13 @@ def main():
         write_image(slug, render(slug, settings, cases), args.check)
 
     section("host", "Subsets", [dr],
-            [f"host: {HOST}", "DestinationRule subsets: scenarios / connections", "No subset → default outlier policy"],
+            [f"host: {HOST}", "exportTo: [.]", "DestinationRule subsets: scenarios / connections", "No subset → default outlier policy"],
             [case("healthy", ["Trouble Service", "Subset: scenarios"], ["Backend: playground-trouble", "Port: 80"] )])
     for slug, title, names, cases in GROUPS:
         snippet = copy.deepcopy(vs)
         snippet["metadata"]["name"] = "trouble-" + slug
         snippet["spec"]["http"] = [routes[name] for name in names]
-        settings = [f"host: {HOST}"]
+        settings = [f"host: {HOST}", "exportTo: [.]"]
         first = next((routes[name] for name in names if "fault" in routes[name]), routes[names[0]])
         if "fault" in first:
             fault = first["fault"]

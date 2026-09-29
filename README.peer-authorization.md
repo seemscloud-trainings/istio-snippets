@@ -7,9 +7,6 @@ metadata:
   name: api-mtls
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   mtls:
     mode: STRICT
 ---
@@ -19,9 +16,6 @@ metadata:
   name: api-access
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
 ---
@@ -29,13 +23,10 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: api-plaintext-client
-  namespace: shop
+  namespace: shop-plain
 spec:
   host: api.shop.svc.cluster.local
   exportTo: [.]
-  workloadSelector:
-    matchLabels:
-      app: plain
   trafficPolicy:
     tls:
       mode: DISABLE
@@ -52,9 +43,6 @@ metadata:
   name: api-mtls
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   mtls:
     mode: PERMISSIVE
 ---
@@ -64,9 +52,6 @@ metadata:
   name: api-access
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
 ---
@@ -74,13 +59,10 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: api-plaintext-client
-  namespace: shop
+  namespace: shop-plain
 spec:
   host: api.shop.svc.cluster.local
   exportTo: [.]
-  workloadSelector:
-    matchLabels:
-      app: plain
   trafficPolicy:
     tls:
       mode: DISABLE
@@ -97,9 +79,6 @@ metadata:
   name: api-mtls
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   mtls:
     mode: STRICT
 ---
@@ -109,9 +88,6 @@ metadata:
   name: api-access
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET, POST], paths: [/orders, /admin]}}]}]
 ---
@@ -121,9 +97,6 @@ metadata:
   name: api-deny-admin-write
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: DENY
   rules: [{to: [{operation: {ports: ['8080'], methods: [POST], paths: [/admin]}}]}]
 ```

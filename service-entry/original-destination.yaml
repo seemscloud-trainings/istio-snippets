@@ -10,3 +10,4 @@ spec:
   ports: [{number: 443, name: https, protocol: TLS}]
   location: MESH_EXTERNAL
   resolution: NONE
+  exportTo: [.]

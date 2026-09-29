@@ -126,7 +126,7 @@ def render(example: Example, resources: list[dict]) -> Image.Image:
 
     c.card(70, 35, 390, 95, "DNS",
            [f"{host}  →  {app_ip}"], "dns")
-    settings = [f"hosts: {host}", f"resolution: {mode}"]
+    settings = [f"hosts: {host}", f"resolution: {mode}", "exportTo: [" + ", ".join(entry["exportTo"]) + "]"]
     if original:
         settings.append("addresses: " + ", ".join(entry["addresses"]))
     elif "endpoints" in entry:

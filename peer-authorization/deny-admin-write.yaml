@@ -4,9 +4,6 @@ metadata:
   name: api-mtls
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   mtls:
     mode: STRICT
 ---
@@ -16,9 +13,6 @@ metadata:
   name: api-access
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET, POST], paths: [/orders, /admin]}}]}]
 ---
@@ -28,8 +22,5 @@ metadata:
   name: api-deny-admin-write
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: DENY
   rules: [{to: [{operation: {ports: ['8080'], methods: [POST], paths: [/admin]}}]}]

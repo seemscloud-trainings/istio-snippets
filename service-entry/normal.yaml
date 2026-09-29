@@ -7,3 +7,4 @@ spec:
   location: MESH_EXTERNAL
   resolution: DNS
   ports: [{number: 443, name: https, protocol: TLS}]
+  exportTo: [.]

@@ -10,6 +10,7 @@ spec:
   location: MESH_EXTERNAL
   resolution: DNS
   ports: [{number: 443, name: https, protocol: TLS}]
+  exportTo: [.]
 ```
 
 ![Normal](images/service-entry/normal.png)
@@ -27,6 +28,7 @@ spec:
   resolution: STATIC
   ports: [{number: 443, name: https, protocol: TLS}]
   endpoints: [{address: 8.8.8.8}]
+  exportTo: [.]
 ```
 
 ![Override Egress IP, not DNS IP](images/service-entry/static-endpoint.png)
@@ -46,6 +48,7 @@ spec:
   ports: [{number: 443, name: https, protocol: TLS}]
   location: MESH_EXTERNAL
   resolution: NONE
+  exportTo: [.]
 ```
 
 ![Original destination — resolution: NONE](images/service-entry/original-destination.png)
@@ -63,6 +66,7 @@ spec:
   resolution: DNS
   ports: [{number: 443, name: https, protocol: TLS}]
   endpoints: [{address: backend.wp.pl}]
+  exportTo: [.]
 ```
 
 ![DNS Resolution + Different Domain](images/service-entry/dns-endpoint.png)
@@ -79,6 +83,7 @@ spec:
   location: MESH_EXTERNAL
   resolution: DNS
   ports: [{number: 80, name: http, protocol: HTTP, targetPort: 4433}]
+  exportTo: [.]
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
@@ -88,6 +93,7 @@ spec:
   host: wp.pl
   trafficPolicy:
     portLevelSettings: [{port: {number: 80}, tls: {mode: SIMPLE}}]
+  exportTo: [.]
 ```
 
 ![Istio 80, egress 4433](images/service-entry/tls-origination.png)

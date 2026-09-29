@@ -6,7 +6,7 @@ metadata:
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
-  exportTo: ['*']
+  exportTo: [.]
   http:
   - name: trouble-rate-limit
     match: [{gateways: [mesh], uri: {exact: /test/cosmos-rate-limit}}]

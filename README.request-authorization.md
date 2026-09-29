@@ -7,9 +7,6 @@ metadata:
   name: api-jwt
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ```
 
@@ -24,9 +21,6 @@ metadata:
   name: api-jwt
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ---
 apiVersion: security.istio.io/v1
@@ -35,9 +29,6 @@ metadata:
   name: api-jwt-access
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: ALLOW
   rules: [{from: [{source: {requestPrincipals: ['*']}}]}]
 ```
@@ -53,9 +44,6 @@ metadata:
   name: api-jwt
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ---
 apiVersion: security.istio.io/v1
@@ -64,9 +52,6 @@ metadata:
   name: api-jwt-access
   namespace: shop
 spec:
-  selector:
-    matchLabels:
-      app: api
   action: ALLOW
   rules:
   - to: [{operation: {methods: [GET], paths: [/healthz]}}]

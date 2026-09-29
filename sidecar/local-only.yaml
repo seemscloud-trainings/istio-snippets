@@ -4,9 +4,6 @@ metadata:
   name: client-egress
   namespace: shop
 spec:
-  workloadSelector:
-    labels:
-      app: client
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
   egress: [{hosts: [./*, istio-system/*]}]

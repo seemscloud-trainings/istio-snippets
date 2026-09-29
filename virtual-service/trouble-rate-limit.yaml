@@ -4,9 +4,6 @@ metadata:
   name: local-rate-limit
   namespace: prod-playground-trouble
 spec:
-  workloadSelector:
-    labels:
-      app.kubernetes.io/name: playground-trouble
   configPatches:
   - applyTo: HTTP_FILTER
     match:
