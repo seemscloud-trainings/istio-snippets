@@ -1,0 +1,22 @@
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: default
+spec:
+  accessLogging:
+  - providers:
+    - name: envoy
+    filter:
+      expression: response.code >= 500
+  metrics:
+  - providers:
+    - name: prometheus
+    overrides:
+    - match:
+        metric: REQUEST_COUNT
+        mode: SERVER
+      disabled: false
+  tracing:
+  - providers:
+    - name: otel
+    randomSamplingPercentage: 10

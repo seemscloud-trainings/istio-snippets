@@ -4,6 +4,7 @@
 - [Gateway gRPC](GATEWAY-GRPC.md)
 - [Sidecar](SIDECAR.md)
 - [ProxyConfig](PROXY-CONFIG.md)
+- [Telemetry](TELEMETRY.md)
 - [WorkloadGroup + WorkloadEntry](VM-WORKLOADS.md)
 - [AuthorizationPolicy + PeerAuthentication](PEER-AUTHORIZATION.md)
 - [RequestAuthentication + AuthorizationPolicy](REQUEST-AUTHORIZATION.md)
