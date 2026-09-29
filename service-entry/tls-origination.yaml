@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: wp
+spec:
+  hosts:
+    - wp.pl
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP
+      targetPort: 4433
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: external-api
+spec:
+  host: wp.pl
+  trafficPolicy:
+    portLevelSettings:
+      - port:
+          number: 80
+        tls:
+          mode: SIMPLE

@@ -1,1 +1,1 @@
-# istio-snippets
+- [Service Entry](README.service-entry.md)
