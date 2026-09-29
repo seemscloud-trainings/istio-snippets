@@ -11,9 +11,9 @@ spec:
     matchLabels:
       app: api
   jwtRules:
-    - issuer: https://issuer.example.test/
+    - issuer: https://wp.pl/
       audiences: [shop-api]
-      jwksUri: https://issuer.example.test/.well-known/jwks.json
+      jwksUri: https://wp.pl/.well-known/jwks.json
 ```
 
 ![JWT validation](images/request-authorization/validate-only.png)
@@ -31,9 +31,9 @@ spec:
     matchLabels:
       app: api
   jwtRules:
-    - issuer: https://issuer.example.test/
+    - issuer: https://wp.pl/
       audiences: [shop-api]
-      jwksUri: https://issuer.example.test/.well-known/jwks.json
+      jwksUri: https://wp.pl/.well-known/jwks.json
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
@@ -66,9 +66,9 @@ spec:
     matchLabels:
       app: api
   jwtRules:
-    - issuer: https://issuer.example.test/
+    - issuer: https://wp.pl/
       audiences: [shop-api]
-      jwksUri: https://issuer.example.test/.well-known/jwks.json
+      jwksUri: https://wp.pl/.well-known/jwks.json
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy

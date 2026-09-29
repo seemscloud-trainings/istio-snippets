@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: wp
+  namespace: prod-playground-trouble
+spec:
+  hosts:
+    - wp.pl
+  exportTo:
+    - "*"
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP

@@ -1,0 +1,65 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: local-rate-limit
+  namespace: prod-playground-trouble
+spec:
+  workloadSelector:
+    labels:
+      app.kubernetes.io/name: playground-trouble
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        portNumber: 8080
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.local_ratelimit
+        typed_config:
+          '@type': type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+          stat_prefix: cosmos_rate_limit
+  - applyTo: HTTP_ROUTE
+    match:
+      context: SIDECAR_INBOUND
+      routeConfiguration:
+        vhost:
+          name: inbound|http|8080
+          route:
+            name: default
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: local-rate-limit
+        match:
+          path: /test/cosmos-rate-limit
+        route:
+          cluster: inbound|8080||
+          timeout: 0s
+        typed_per_filter_config:
+          envoy.filters.http.local_ratelimit:
+            '@type': type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+            stat_prefix: cosmos_rate_limit
+            token_bucket:
+              max_tokens: 3
+              tokens_per_fill: 3
+              fill_interval: 10s
+            filter_enabled:
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            filter_enforced:
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            response_headers_to_add:
+            - append_action: OVERWRITE_IF_EXISTS_OR_ADD
+              header:
+                key: x-local-rate-limit
+                value: 'true'

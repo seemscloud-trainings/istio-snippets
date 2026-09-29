@@ -1,4 +1,5 @@
 - [Service Entry](README.service-entry.md)
+- [VirtualService](README.virtual-service.md)
 - [Sidecar](README.sidecar.md)
 - [AuthorizationPolicy + PeerAuthentication](README.peer-authorization.md)
 - [RequestAuthentication + AuthorizationPolicy](README.request-authorization.md)

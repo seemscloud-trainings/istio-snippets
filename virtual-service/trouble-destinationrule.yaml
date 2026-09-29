@@ -1,0 +1,38 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: playground-trouble
+  namespace: prod-playground-trouble
+spec:
+  host: playground-trouble.prod-playground-trouble.svc.cluster.local
+  exportTo:
+  - '*'
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 1s
+      baseEjectionTime: 5s
+      maxEjectionPercent: 50
+      minHealthPercent: 0
+  subsets:
+  - name: connections
+    labels:
+      app.kubernetes.io/name: playground-trouble
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 1
+        http:
+          http1MaxPendingRequests: 1
+          http2MaxRequests: 1
+          h2UpgradePolicy: DO_NOT_UPGRADE
+      outlierDetection:
+        consecutive5xxErrors: 0
+  - name: scenarios
+    labels:
+      app.kubernetes.io/name: playground-trouble
+    trafficPolicy:
+      outlierDetection:
+        consecutive5xxErrors: 0
