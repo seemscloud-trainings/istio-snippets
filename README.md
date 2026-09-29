@@ -1,5 +1,6 @@
 - [Service Entry](README.service-entry.md)
 - [VirtualService](README.virtual-service.md)
+- [Gateway + VirtualService](README.gateway.md)
 - [Sidecar](README.sidecar.md)
 - [ProxyConfig](README.proxy-config.md)
 - [WorkloadGroup + WorkloadEntry](README.vm-workloads.md)
