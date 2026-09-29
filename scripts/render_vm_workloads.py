@@ -87,23 +87,20 @@ def script(name):
 def docs():
     parts = [
         "## 1. WorkloadGroup — one application on three VMs",
-        "Debian/Ubuntu amd64; applications already listen on 8080. One routable L3 network (`network1`): Pods ↔ VM application ports, VM → Istiod gateway on TCP 15012. The selected namespace is already managed by Istio; its `istio-ca-root-cert` ConfigMap exists. Istiod needs `PILOT_ENABLE_WORKLOAD_ENTRY_AUTOREGISTRATION=true` and `PILOT_ENABLE_WORKLOAD_ENTRY_HEALTHCHECKS=true`.",
-        "**Workstation** — use the matching Istio release and replace these example gateway/cluster values; use your workload namespace in the current kubectl context.",
+        '#### Workstation',
         code("bash", """export ISTIO_VERSION=1.30.5
 export CLUSTER_ID=cluster1
 export ISTIOD_IP=192.0.2.10
 export ISTIO_REVISION=green
 export VM_USER=ubuntu
 istioctl version --remote=false"""),
-        "Use an empty `ISTIO_REVISION` for an unrevisioned control plane. The 15012 gateway must forward to the selected Istiod revision; network IDs must match the existing mesh.",
         code("yaml", dump_documents(yaml.safe_load_all((VM / "workload-group.yaml").read_text()))),
         "![WorkloadGroup: one service, three VM instances](images/vm-workloads/workload-group.png)",
-        "**Register and generate one bundle per VM** — WorkloadGroup is stored in Kubernetes; WorkloadEntries appear when the VM agents connect. `workloadSelector` here binds VM endpoints to ServiceEntry.",
+        '#### Register + bootstrap',
         code("bash", "kubectl apply -f vm-workloads/workload-group.yaml"),
         code("bash", script("group-bootstrap.sh")),
-        "The same commands are saved in [group-bootstrap.sh](vm-workloads/group-bootstrap.sh).",
-        "| Generated file | On the VM |\n|---|---|\n| `cluster.env` | `/var/lib/istio/envoy/cluster.env` — IP, ports, identity, network |\n| `mesh.yaml` | `/etc/istio/config/mesh` — discovery/proxy configuration |\n| `root-cert.pem` | `/etc/certs/root-cert.pem` — CA trust |\n| `istio-token` | `/var/lib/istio/istio-token` → `/var/run/secrets/tokens/istio-token` |\n| `hosts` | Managed block in `/etc/hosts` — reachable Istiod address |",
-        "**Copy** — `VM_USER` is your SSH user; each VM gets its own bundle.",
+        '#### Generated files\n\n```text\ncluster.env   → /var/lib/istio/envoy/cluster.env\nmesh.yaml     → /etc/istio/config/mesh\nroot-cert.pem → /etc/certs/root-cert.pem\nistio-token   → /var/lib/istio/istio-token\n              → /var/run/secrets/tokens/istio-token\nhosts         → /etc/hosts\n```',
+        '#### Copy',
         code("bash", """for item in vm1:10.20.0.11 vm2:10.20.0.12 vm3:10.20.0.13; do
   vm_name="${item%%:*}"
   vm_ip="${item#*:}"
@@ -111,28 +108,26 @@ istioctl version --remote=false"""),
   scp ".local/vm-group/$vm_name/"{cluster.env,mesh.yaml,root-cert.pem,istio-token,hosts} \\
     vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
 done"""),
-        "**On each VM** — [install-vm.sh](vm-workloads/install-vm.sh) installs the official `istio-sidecar` package, copies the five files, configures token restoration after reboot, and starts the `istio` systemd service.",
+        '#### On each VM',
         code("bash", """export ISTIO_VERSION=1.30.5
 sudo env ISTIO_VERSION="$ISTIO_VERSION" bash "$HOME/istio-bootstrap/install-vm.sh" "$HOME/istio-bootstrap"
 sudo systemctl status istio --no-pager
 curl -fsS http://127.0.0.1:15021/healthz/ready"""),
-        "**Check from the workstation** — create the client after ProxyConfig so DNS capture is enabled.",
+        '#### Check',
         code("bash", """kubectl get workloadentry -l app=shared-app -o wide
 istioctl proxy-status
 kubectl run vm-client --image=curlimages/curl:8.16.0 --restart=Never --command -- sleep 3600
 kubectl wait pod/vm-client --for=condition=Ready --timeout=120s
 kubectl exec vm-client -c vm-client -- curl -sS http://wp.pl"""),
-        "The bootstrap token defaults to one hour. Renew it before expiry and update both token paths on the matching VM; restoring a file after reboot does not renew it. Generated bundles stay in Git-ignored `.local/`.",
+        '#### Renew token',
         code("bash", "kubectl create token shared-app --audience=istio-ca --duration=1h > .local/vm-group/vm1/istio-token"),
         "## 2. WorkloadEntry — three applications on three VMs",
-        "Same prerequisites and installation steps. VM1: orders on `10.20.0.21:8080`; VM2: payments on `10.20.0.22:9090`; VM3: inventory on `10.20.0.23:7070`. Each application has its own ServiceAccount, WorkloadEntry and ServiceEntry.",
         code("yaml", dump_documents(yaml.safe_load_all((VM / "workload-entry.yaml").read_text()))),
         "![WorkloadEntry: three separate VM services](images/vm-workloads/workload-entry.png)",
-        "**Register and bootstrap** — the WorkloadGroup files below are local `istioctl` input only; do not apply them. `--autoregister=false` keeps the three WorkloadEntries manually managed.",
+        '#### Register + bootstrap',
         code("bash", "kubectl apply -f vm-workloads/workload-entry.yaml"),
         code("bash", script("entry-bootstrap.sh")),
-        "The same commands are saved in [entry-bootstrap.sh](vm-workloads/entry-bootstrap.sh).",
-        "**Copy and install** — the generated files and their VM destinations are identical to case 1.",
+        '#### Copy + install',
         code("bash", """for item in orders:10.20.0.21 payments:10.20.0.22 inventory:10.20.0.23; do
   app="${item%%:*}"
   vm_ip="${item#*:}"
@@ -143,13 +138,12 @@ done"""),
         code("bash", """export ISTIO_VERSION=1.30.5
 sudo env ISTIO_VERSION="$ISTIO_VERSION" bash "$HOME/istio-bootstrap/install-vm.sh" "$HOME/istio-bootstrap"
 curl -fsS http://127.0.0.1:15021/healthz/ready"""),
-        "**Check** — reuse `vm-client` from case 1, or create it with the same command.",
+        '#### Check',
         code("bash", """kubectl get workloadentry orders-vm payments-vm inventory-vm -o wide
 istioctl proxy-status
 kubectl exec vm-client -c vm-client -- curl -sS http://orders.wp.pl
 kubectl exec vm-client -c vm-client -- curl -sS http://payments.wp.pl
 kubectl exec vm-client -c vm-client -- curl -sS http://inventory.wp.pl"""),
-        "Renew each VM token using its own ServiceAccount (`orders`, `payments`, `inventory`). A stopped VM does not remove a manually created WorkloadEntry.",
     ]
     return "\n\n".join(parts) + "\n"
 

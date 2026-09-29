@@ -1,5 +1,3 @@
-Gateway Pods and Services already exist. Apply each pair in the namespace of its gateway Pods. The client below is in that namespace; the backend has `/test/cosmos-healthy` configured.
-
 #### gateway-green
 
 ```yaml

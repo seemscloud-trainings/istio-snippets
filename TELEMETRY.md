@@ -1,7 +1,5 @@
 #### Access logs + metrics + tracing
 
-Use in the workload namespace, outside the mesh root namespace. Tracing requires `meshConfig.enableTracing: true` and provider `otel`; `istio-setup` configures it for Alloy on port 4317. Prometheus must scrape the proxies.
-
 ```yaml
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry

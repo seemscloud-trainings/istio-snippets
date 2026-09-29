@@ -46,17 +46,15 @@ def render():
 
 
 def docs():
-    sections = []
+    sections = ['#### gRPC']
     for name in ('app', 'gateway'):
         resources = yaml.safe_load_all((ROOT / 'gateway-grpc' / f'{name}.yaml').read_text())
         sections.append('```yaml\n' + dump_documents(resources).strip() + '\n```')
     sections.extend([
         '![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](images/gateway-grpc/flow.png)',
         '#### TLS Secret',
-        '`wp.pl.crt` must cover `wp.pl` and match `wp.pl.key`; `ca.crt` is its trusted CA. Run in the gateway namespace selected in the current kubectl context.',
         '```bash\nkubectl create secret tls grpc-end-gw-tls --cert=wp.pl.crt --key=wp.pl.key --dry-run=client -o yaml | kubectl apply -f -\nkubectl apply -f gateway-grpc/app.yaml -f gateway-grpc/gateway.yaml\n```',
         '#### Request',
-        'From a client in the same namespace, with `grpcurl` and `ca.crt`. `list` requires server reflection; without reflection, supply the application `.proto` and RPC method.',
         '```bash\ngrpcurl -cacert ca.crt -authority wp.pl gateway-green:443 list\n```',
     ])
     return '\n\n'.join(sections) + '\n'

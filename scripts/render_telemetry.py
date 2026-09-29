@@ -57,7 +57,6 @@ def main():
     resource = yaml.safe_load((ROOT / 'telemetry/default.yaml').read_text())
     content = '\n\n'.join([
         '#### Access logs + metrics + tracing',
-        'Use in the workload namespace, outside the mesh root namespace. Tracing requires `meshConfig.enableTracing: true` and provider `otel`; `istio-setup` configures it for Alloy on port 4317. Prometheus must scrape the proxies.',
         '```yaml\n' + dump_documents([resource]).strip() + '\n```',
         '![Telemetry: error logs, request counters and trace sampling](images/telemetry/default.png)',
     ]) + '\n'

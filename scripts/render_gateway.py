@@ -43,7 +43,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    sections = ['Gateway Pods and Services already exist. Apply each pair in the namespace of its gateway Pods. The client below is in that namespace; the backend has `/test/cosmos-healthy` configured.']
+    sections = []
     for color in ('green', 'blue'):
         resources = list(yaml.safe_load_all((ROOT / 'gateway' / f'{color}.yaml').read_text()))
         output = ROOT / 'images/gateway' / f'{color}.png'

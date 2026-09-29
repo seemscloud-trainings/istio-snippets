@@ -1,3 +1,5 @@
+#### gRPC
+
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -107,16 +109,12 @@ spec:
 
 #### TLS Secret
 
-`wp.pl.crt` must cover `wp.pl` and match `wp.pl.key`; `ca.crt` is its trusted CA. Run in the gateway namespace selected in the current kubectl context.
-
 ```bash
 kubectl create secret tls grpc-end-gw-tls --cert=wp.pl.crt --key=wp.pl.key --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f gateway-grpc/app.yaml -f gateway-grpc/gateway.yaml
 ```
 
 #### Request
-
-From a client in the same namespace, with `grpcurl` and `ca.crt`. `list` requires server reflection; without reflection, supply the application `.proto` and RPC method.
 
 ```bash
 grpcurl -cacert ca.crt -authority wp.pl gateway-green:443 list
