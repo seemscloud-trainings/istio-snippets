@@ -12,7 +12,14 @@ metadata:
   name: api-access
 spec:
   action: ALLOW
-  rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
+  rules:
+  - from:
+    - source:
+        principals: [cluster.local/ns/shop/sa/reader]
+    to:
+    - operation:
+        methods: [GET]
+        paths: [/orders]
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule

@@ -5,4 +5,5 @@ metadata:
 spec:
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
-  egress: [{hosts: [./*, istio-system/*, payments/api.payments.svc.cluster.local]}]
+  egress:
+  - hosts: [./*, istio-system/*, payments/api.payments.svc.cluster.local]

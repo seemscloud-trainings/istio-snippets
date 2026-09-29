@@ -1,11 +1,12 @@
-"""Shared YAML formatting: singleton sequences use brackets, including object lists."""
+"""Shared YAML formatting: scalar lists are inline; object lists use block style."""
 
 import yaml
 
 
 class SnippetDumper(yaml.SafeDumper):
     def represent_sequence(self, tag, sequence, flow_style=None):
-        return super().represent_sequence(tag, sequence, flow_style=len(sequence) == 1)
+        scalar_items = all(not isinstance(item, (dict, list, tuple)) for item in sequence)
+        return super().represent_sequence(tag, sequence, flow_style=scalar_items)
 
 
 def represent_string(dumper, value):

@@ -16,4 +16,7 @@ spec:
   exportTo: [.]
   location: MESH_EXTERNAL
   resolution: DNS
-  ports: [{number: 80, name: http, protocol: HTTP}]
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP

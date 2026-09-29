@@ -6,4 +6,7 @@ metadata:
     proxy.istio.io/config: |
       holdApplicationUntilProxyStarts: true
 spec:
-  containers: [{name: app, image: 'curlimages/curl:8.16.0', command: [sh, -c, 'curl --fail --max-time 10 http://wp.pl; sleep 3600']}]
+  containers:
+  - name: app
+    image: curlimages/curl:8.16.0
+    command: [sh, -c, 'curl --fail --max-time 10 http://wp.pl; sleep 3600']

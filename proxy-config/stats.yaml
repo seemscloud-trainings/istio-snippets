@@ -5,9 +5,9 @@ metadata:
   annotations:
     proxy.istio.io/config: |
       proxyStatsMatcher:
-        inclusionRegexps:
-        - .*upstream_rq_retry.*
-        - .*upstream_rq_pending_overflow.*
-        - .*upstream_cx_active.*
+        inclusionRegexps: [.*upstream_rq_retry.*, .*upstream_rq_pending_overflow.*, .*upstream_cx_active.*]
 spec:
-  containers: [{name: app, image: 'curlimages/curl:8.16.0', command: [sh, -c, sleep 3600]}]
+  containers:
+  - name: app
+    image: curlimages/curl:8.16.0
+    command: [sh, -c, sleep 3600]

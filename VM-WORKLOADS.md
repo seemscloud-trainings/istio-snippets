@@ -51,7 +51,10 @@ spec:
   exportTo: [.]
   location: MESH_INTERNAL
   resolution: STATIC
-  ports: [{number: 80, name: http, protocol: HTTP}]
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
   workloadSelector:
     labels:
       app: shared-app
@@ -185,7 +188,10 @@ spec:
   exportTo: [.]
   location: MESH_INTERNAL
   resolution: STATIC
-  ports: [{number: 80, name: http, protocol: HTTP}]
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
   workloadSelector:
     labels:
       app: orders
@@ -218,7 +224,10 @@ spec:
   exportTo: [.]
   location: MESH_INTERNAL
   resolution: STATIC
-  ports: [{number: 80, name: http, protocol: HTTP}]
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
   workloadSelector:
     labels:
       app: payments
@@ -251,7 +260,10 @@ spec:
   exportTo: [.]
   location: MESH_INTERNAL
   resolution: STATIC
-  ports: [{number: 80, name: http, protocol: HTTP}]
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
   workloadSelector:
     labels:
       app: inventory

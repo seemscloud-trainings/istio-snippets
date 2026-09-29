@@ -10,7 +10,12 @@ metadata:
 spec:
   selector:
     istio: gateway-green
-  servers: [{port: {number: 80, name: http, protocol: HTTP}, hosts: [wp.pl]}]
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts: [wp.pl]
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -20,7 +25,12 @@ spec:
   hosts: [wp.pl]
   gateways: [wp-green]
   exportTo: [.]
-  http: [{route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, port: {number: 80}}}]}]
+  http:
+  - route:
+    - destination:
+        host: playground-trouble.prod-playground-trouble.svc.cluster.local
+        port:
+          number: 80
 ```
 
 ![Gateway green binding and request flow](images/gateway/green.png)
@@ -35,7 +45,12 @@ metadata:
 spec:
   selector:
     istio: gateway-blue
-  servers: [{port: {number: 80, name: http, protocol: HTTP}, hosts: [wp.pl]}]
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts: [wp.pl]
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -45,7 +60,12 @@ spec:
   hosts: [wp.pl]
   gateways: [wp-blue]
   exportTo: [.]
-  http: [{route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, port: {number: 80}}}]}]
+  http:
+  - route:
+    - destination:
+        host: playground-trouble.prod-playground-trouble.svc.cluster.local
+        port:
+          number: 80
 ```
 
 ![Gateway blue binding and request flow](images/gateway/blue.png)

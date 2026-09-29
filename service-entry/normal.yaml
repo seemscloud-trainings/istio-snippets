@@ -6,5 +6,8 @@ spec:
   hosts: [wp.pl]
   location: MESH_EXTERNAL
   resolution: DNS
-  ports: [{number: 443, name: https, protocol: TLS}]
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
   exportTo: [.]

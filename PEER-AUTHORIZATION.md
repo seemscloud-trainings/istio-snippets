@@ -15,7 +15,14 @@ metadata:
   name: api-access
 spec:
   action: ALLOW
-  rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
+  rules:
+  - from:
+    - source:
+        principals: [cluster.local/ns/shop/sa/reader]
+    to:
+    - operation:
+        methods: [GET]
+        paths: [/orders]
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
@@ -48,7 +55,14 @@ metadata:
   name: api-access
 spec:
   action: ALLOW
-  rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
+  rules:
+  - from:
+    - source:
+        principals: [cluster.local/ns/shop/sa/reader]
+    to:
+    - operation:
+        methods: [GET]
+        paths: [/orders]
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
@@ -81,7 +95,14 @@ metadata:
   name: api-access
 spec:
   action: ALLOW
-  rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET, POST], paths: [/orders, /admin]}}]}]
+  rules:
+  - from:
+    - source:
+        principals: [cluster.local/ns/shop/sa/reader]
+    to:
+    - operation:
+        methods: [GET, POST]
+        paths: [/orders, /admin]
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
@@ -89,7 +110,12 @@ metadata:
   name: api-deny-admin-write
 spec:
   action: DENY
-  rules: [{to: [{operation: {ports: ['8080'], methods: [POST], paths: [/admin]}}]}]
+  rules:
+  - to:
+    - operation:
+        ports: ['8080']
+        methods: [POST]
+        paths: [/admin]
 ```
 
 ![DENY + ALLOW](images/peer-authorization/deny-admin-write.png)

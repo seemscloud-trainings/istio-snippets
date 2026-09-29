@@ -9,4 +9,8 @@ metadata:
       terminationDrainDuration: 30s
 spec:
   terminationGracePeriodSeconds: 45
-  containers: [{name: app, image: 'nginxinc/nginx-unprivileged:1.29-alpine3.22', ports: [{containerPort: 8080}]}]
+  containers:
+  - name: app
+    image: nginxinc/nginx-unprivileged:1.29-alpine3.22
+    ports:
+    - containerPort: 8080

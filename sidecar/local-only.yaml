@@ -5,4 +5,5 @@ metadata:
 spec:
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
-  egress: [{hosts: [./*, istio-system/*]}]
+  egress:
+  - hosts: [./*, istio-system/*]

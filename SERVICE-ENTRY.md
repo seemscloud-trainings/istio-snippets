@@ -9,7 +9,10 @@ spec:
   hosts: [wp.pl]
   location: MESH_EXTERNAL
   resolution: DNS
-  ports: [{number: 443, name: https, protocol: TLS}]
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
   exportTo: [.]
 ```
 
@@ -26,8 +29,12 @@ spec:
   hosts: [wp.pl]
   location: MESH_EXTERNAL
   resolution: STATIC
-  ports: [{number: 443, name: https, protocol: TLS}]
-  endpoints: [{address: 8.8.8.8}]
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
+  endpoints:
+  - address: 8.8.8.8
   exportTo: [.]
 ```
 
@@ -42,10 +49,11 @@ metadata:
   name: default
 spec:
   hosts: [wp.pl]
-  addresses:
-  - 1.1.1.1
-  - 1.0.0.1
-  ports: [{number: 443, name: https, protocol: TLS}]
+  addresses: [1.1.1.1, 1.0.0.1]
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
   location: MESH_EXTERNAL
   resolution: NONE
   exportTo: [.]
@@ -64,8 +72,12 @@ spec:
   hosts: [wp.pl]
   location: MESH_EXTERNAL
   resolution: DNS
-  ports: [{number: 443, name: https, protocol: TLS}]
-  endpoints: [{address: backend.wp.pl}]
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
+  endpoints:
+  - address: backend.wp.pl
   exportTo: [.]
 ```
 
@@ -82,7 +94,11 @@ spec:
   hosts: [wp.pl]
   location: MESH_EXTERNAL
   resolution: DNS
-  ports: [{number: 80, name: http, protocol: HTTP, targetPort: 4433}]
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
+    targetPort: 4433
   exportTo: [.]
 ---
 apiVersion: networking.istio.io/v1
@@ -92,7 +108,11 @@ metadata:
 spec:
   host: wp.pl
   trafficPolicy:
-    portLevelSettings: [{port: {number: 80}, tls: {mode: SIMPLE}}]
+    portLevelSettings:
+    - port:
+        number: 80
+      tls:
+        mode: SIMPLE
   exportTo: [.]
 ```
 

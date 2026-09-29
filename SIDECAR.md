@@ -8,7 +8,8 @@ metadata:
 spec:
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
-  egress: [{hosts: [./*, istio-system/*]}]
+  egress:
+  - hosts: [./*, istio-system/*]
 ```
 
 ![Local namespace](images/sidecar/local-only.png)
@@ -23,7 +24,8 @@ metadata:
 spec:
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
-  egress: [{hosts: [./*, istio-system/*, payments/api.payments.svc.cluster.local]}]
+  egress:
+  - hosts: [./*, istio-system/*, payments/api.payments.svc.cluster.local]
 ```
 
 ![One remote service](images/sidecar/import-service.png)
@@ -38,7 +40,8 @@ metadata:
 spec:
   outboundTrafficPolicy:
     mode: ALLOW_ANY
-  egress: [{hosts: [./*, istio-system/*]}]
+  egress:
+  - hosts: [./*, istio-system/*]
 ```
 
 ![ALLOW_ANY](images/sidecar/allow-any.png)

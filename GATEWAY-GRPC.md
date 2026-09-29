@@ -29,7 +29,26 @@ spec:
         proxy.istio.io/config: '{"holdApplicationUntilProxyStarts": true}'
     spec:
       serviceAccountName: grpc
-      containers: [{name: grpc, image: 'seemscloud/grpc-server:latest', imagePullPolicy: Always, securityContext: {runAsNonRoot: true, runAsGroup: 1000, runAsUser: 1000}, ports: [{containerPort: 9000}, {containerPort: 9443}], env: [{name: LISTEN_PORT, value: '9000'}, {name: LISTEN_PORT_TLS, value: '9443'}, {name: GRPC_VERBOSITY, value: DEBUG}, {name: GRPC_TRACE, value: all}]}]
+      containers:
+      - name: grpc
+        image: seemscloud/grpc-server:latest
+        imagePullPolicy: Always
+        securityContext:
+          runAsNonRoot: true
+          runAsGroup: 1000
+          runAsUser: 1000
+        ports:
+        - containerPort: 9000
+        - containerPort: 9443
+        env:
+        - name: LISTEN_PORT
+          value: '9000'
+        - name: LISTEN_PORT_TLS
+          value: '9443'
+        - name: GRPC_VERBOSITY
+          value: DEBUG
+        - name: GRPC_TRACE
+          value: all
 ---
 apiVersion: v1
 kind: Service
@@ -39,7 +58,12 @@ spec:
   type: ClusterIP
   selector:
     app: grpc
-  ports: [{name: grpc, appProtocol: grpc, protocol: TCP, port: 9000, targetPort: 9000}]
+  ports:
+  - name: grpc
+    appProtocol: grpc
+    protocol: TCP
+    port: 9000
+    targetPort: 9000
 ```
 
 ```yaml
@@ -75,7 +99,12 @@ spec:
   gateways: [grpc]
   hosts: [wp.pl]
   exportTo: [.]
-  http: [{route: [{destination: {host: grpc, port: {number: 9000}}}]}]
+  http:
+  - route:
+    - destination:
+        host: grpc
+        port:
+          number: 9000
 ```
 
 ![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](images/gateway-grpc/flow.png)
