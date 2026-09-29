@@ -34,8 +34,10 @@ def render(resources):
     c.text(550, 375, 'HTTP :80', 20, BLUE)
     c.arrow([(1140, 410), (1270, 410)], GREEN)
     c.text(1162, 375, 'route', 20, GREEN)
-    c.arrow([(1460, 500), (1460, 570), (285, 570), (285, 500)], GREEN)
-    c.text(800, 585, 'Client ← 200', 22, GREEN)
+    c.arrow([(1460, 500), (1460, 570), (1010, 570), (1010, 500)], GREEN)
+    c.text(1170, 585, 'Backend → Gateway: 200', 20, GREEN)
+    c.arrow([(800, 500), (800, 570), (285, 570), (285, 500)], GREEN)
+    c.text(360, 585, 'Gateway → Client: 200', 20, GREEN)
     return c.image
 
 
