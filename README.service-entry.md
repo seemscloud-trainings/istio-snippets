@@ -40,7 +40,7 @@ spec:
 
 ![Override Egress IP, not DNS IP](images/service-entry/static-endpoint.png)
 
-#### Service Translation — original destination
+#### Original destination — resolution: NONE
 
 ```yaml
 apiVersion: networking.istio.io/v1
@@ -61,7 +61,7 @@ spec:
   resolution: NONE
 ```
 
-![Service Translation — original destination](images/service-entry/original-destination.png)
+![Original destination — resolution: NONE](images/service-entry/original-destination.png)
 
 #### DNS Resolution + Different Domain
 

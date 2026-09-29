@@ -25,6 +25,7 @@ STYLES = {
     "dns": ("#fcf7ec", "#d8c18f", AMBER),
     "target": ("#edf7f4", "#a5c7bd", GREEN),
     "neutral": ("#f7f9fb", BORDER, MUTED),
+    "blocked": ("#fcf0ef", "#d8aaa6", "#a34740"),
 }
 
 
@@ -37,7 +38,7 @@ class Example:
 EXAMPLES = (
     Example("normal", "Normal"),
     Example("static-endpoint", "Override Egress IP, not DNS IP"),
-    Example("original-destination", "Service Translation — original destination"),
+    Example("original-destination", "Original destination — resolution: NONE"),
     Example("dns-endpoint", "DNS Resolution + Different Domain"),
     Example("tls-origination", "Istio 80, egress 4433"),
 )
@@ -128,6 +129,8 @@ def render(example: Example, resources: list[dict]) -> Image.Image:
         settings.append("addresses: " + ", ".join(entry["addresses"]))
     elif "endpoints" in entry:
         settings.append(f"endpoints: {endpoint}")
+        if mode == "DNS":
+            settings.append(f"DNS result: {proxy_ip}")
     if origination:
         settings.extend([f"port: {port['number']} → targetPort: {upstream_port}",
                          "DestinationRule: tls.mode = SIMPLE"])
@@ -137,8 +140,10 @@ def render(example: Example, resources: list[dict]) -> Image.Image:
     for x in (265, 845):
         c.line([(x - 14, 320), (x + 14, 320)], "white", width=6)
     c.line([(1080, 436), (1080, 464)], "white", width=6)
+    if original:
+        c.line([(1080, 386), (1080, 414)], "white", width=6)
     c.text(65, 337, "Pod", 23, MUTED, True)
-    c.text(1240, 337, "External", 23, MUTED, True)
+    c.text(1240, 140 if original else 337, "Outbound policy" if original else "External", 23, MUTED, True)
     c.arrow([(265, 375), (265, 130)], AMBER, True)
     c.arrow([(845, 250), (845, 375)], MUTED, True)
 
@@ -147,18 +152,21 @@ def render(example: Example, resources: list[dict]) -> Image.Image:
             f"{host}  →  {app_ip}"], "app")
     proxy_lines = [f"{host}  →  {proxy_ip}"]
     if original:
-        proxy_lines.append("No IP match → ALLOW_ANY")
+        proxy_lines = [f"{app_ip} ≠ listed IPs", "ServiceEntry not used"]
     elif origination:
         proxy_lines.append("HTTP :80 → HTTPS :4433")
     elif mode == "DNS":
         proxy_lines.append(f"DNS: {endpoint}")
     c.card(650, 375, 390, 145, "Envoy", proxy_lines, "proxy")
-    c.card(1240, 375, 350, 145, "Destination",
-           [f"{proxy_ip}:{upstream_port}", f"HTTPS host: {host}"], "target")
+    if original:
+        c.card(1240, 175, 350, 95, "REGISTRY_ONLY", ["Connection blocked"], "blocked")
+        c.arrow([(1040, 400), (1170, 400), (1170, 222), (1240, 222)], "#a34740")
+    c.card(1240, 375, 350, 145, "ALLOW_ANY" if original else "Destination",
+           [f"{proxy_ip}:{upstream_port}", "Keep curl's destination IP" if original else f"HTTPS host: {host}"], "target")
     c.arrow([(460, 450), (650, 450)])
     c.text(477, 412, f"{'HTTP' if origination else 'HTTPS'} :{port['number']}", 22, BLUE)
     c.arrow([(1040, 450), (1240, 450)], GREEN)
-    c.text(1058, 412, f"HTTPS :{upstream_port}", 22, GREEN)
+    c.text(1092, 465 if original else 412, f"HTTPS :{upstream_port}", 22, GREEN)
     return c.image
 
 
