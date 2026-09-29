@@ -5,6 +5,7 @@
 - [Sidecar](SIDECAR.md)
 - [ProxyConfig](PROXY-CONFIG.md)
 - [Telemetry](TELEMETRY.md)
+- [CronJob](CRONJOB.md)
 - [WorkloadGroup + WorkloadEntry](VM-WORKLOADS.md)
 - [AuthorizationPolicy + PeerAuthentication](PEER-AUTHORIZATION.md)
 - [RequestAuthentication + AuthorizationPolicy](REQUEST-AUTHORIZATION.md)
