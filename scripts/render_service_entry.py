@@ -14,7 +14,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = 2
-SIZE = (1640, 470)
+SIZE = (1640, 580)
 # Illustrative DNS answers from RFC 5737; never query live endpoints when rendering.
 DNS_ANSWERS = {"wp.pl": "198.51.100.10", "backend.wp.pl": "198.51.100.20"}
 INK, MUTED, BORDER = "#243347", "#65758b", "#c7d2de"
@@ -123,37 +123,42 @@ def render(example: Example, resources: list[dict]) -> Image.Image:
 
     c.card(70, 35, 390, 95, "DNS",
            [f"{host}  →  {app_ip}"], "dns")
-    if mode == "DNS":
-        c.card(650, 35, 390, 95, "DNS",
-               [f"{endpoint}  →  {proxy_ip}"], "dns")
-    else:
-        c.card(650, 35, 390, 95, "addresses" if original else "endpoints",
-               [", ".join(entry["addresses"]) if original else endpoint], "neutral")
+    settings = [f"hosts: {host}", f"resolution: {mode}"]
+    if original:
+        settings.append("addresses: " + ", ".join(entry["addresses"]))
+    elif "endpoints" in entry:
+        settings.append(f"endpoints: {endpoint}")
+    if origination:
+        settings.extend([f"port: {port['number']} → targetPort: {upstream_port}",
+                         "DestinationRule: tls.mode = SIMPLE"])
+    c.card(650, 25, 470, 225, "ServiceEntry", settings, "neutral")
 
-    c.box(40, 200, 1040, 240, "white", BORDER)
+    c.box(40, 320, 1040, 235, "white", BORDER)
     for x in (265, 845):
-        c.line([(x - 14, 200), (x + 14, 200)], "white", width=6)
-    c.line([(1080, 326), (1080, 354)], "white", width=6)
-    c.text(65, 218, "Pod", 23, MUTED, True)
-    c.text(1240, 218, "External", 23, MUTED, True)
-    c.arrow([(265, 265), (265, 130)], AMBER, True)
-    c.arrow([(845, 265), (845, 130)] if mode == "DNS" else [(845, 130), (845, 265)],
-            AMBER if mode == "DNS" else MUTED, True)
+        c.line([(x - 14, 320), (x + 14, 320)], "white", width=6)
+    c.line([(1080, 436), (1080, 464)], "white", width=6)
+    c.text(65, 337, "Pod", 23, MUTED, True)
+    c.text(1240, 337, "External", 23, MUTED, True)
+    c.arrow([(265, 375), (265, 130)], AMBER, True)
+    c.arrow([(845, 250), (845, 375)], MUTED, True)
 
-    c.card(70, 265, 390, 145, "Container",
+    c.card(70, 375, 390, 145, "Container",
            [f"curl {'http' if origination else 'https'}://{host}",
             f"{host}  →  {app_ip}"], "app")
-    proxy_lines = (["ServiceEntry: no IP match", "ALLOW_ANY: passthrough"] if original
-                   else [f"targetPort: {upstream_port}" if origination else f"resolution: {mode}",
-                         "TLS: SIMPLE" if origination else "TLS passthrough"])
-    c.card(650, 265, 390, 145, "Envoy",
-           proxy_lines, "proxy")
-    c.card(1240, 265, 350, 145, "Destination",
-           [f"{proxy_ip}:{upstream_port}", f"TLS SNI: {host}"], "target")
-    c.arrow([(460, 340), (650, 340)])
-    c.text(490, 302, f"{'HTTP' if origination else 'TLS'} :{port['number']}", 22, BLUE)
-    c.arrow([(1040, 340), (1240, 340)], GREEN)
-    c.text(1100, 302, f"TLS :{upstream_port}", 22, GREEN)
+    proxy_lines = [f"{host}  →  {proxy_ip}"]
+    if original:
+        proxy_lines.append("No IP match → ALLOW_ANY")
+    elif origination:
+        proxy_lines.append("HTTP :80 → HTTPS :4433")
+    elif mode == "DNS":
+        proxy_lines.append(f"DNS: {endpoint}")
+    c.card(650, 375, 390, 145, "Envoy", proxy_lines, "proxy")
+    c.card(1240, 375, 350, 145, "Destination",
+           [f"{proxy_ip}:{upstream_port}", f"HTTPS host: {host}"], "target")
+    c.arrow([(460, 450), (650, 450)])
+    c.text(477, 412, f"{'HTTP' if origination else 'HTTPS'} :{port['number']}", 22, BLUE)
+    c.arrow([(1040, 450), (1240, 450)], GREEN)
+    c.text(1058, 412, f"HTTPS :{upstream_port}", 22, GREEN)
     return c.image
 
 
