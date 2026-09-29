@@ -5,7 +5,6 @@ apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: api-mtls
-  namespace: shop
 spec:
   mtls:
     mode: STRICT
@@ -14,7 +13,6 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: api-access
-  namespace: shop
 spec:
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
@@ -23,7 +21,6 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: api-plaintext-client
-  namespace: shop-plain
 spec:
   host: api.shop.svc.cluster.local
   exportTo: [.]
@@ -41,7 +38,6 @@ apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: api-mtls
-  namespace: shop
 spec:
   mtls:
     mode: PERMISSIVE
@@ -50,7 +46,6 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: api-access
-  namespace: shop
 spec:
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
@@ -59,7 +54,6 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: api-plaintext-client
-  namespace: shop-plain
 spec:
   host: api.shop.svc.cluster.local
   exportTo: [.]
@@ -77,7 +71,6 @@ apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: api-mtls
-  namespace: shop
 spec:
   mtls:
     mode: STRICT
@@ -86,7 +79,6 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: api-access
-  namespace: shop
 spec:
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET, POST], paths: [/orders, /admin]}}]}]
@@ -95,7 +87,6 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: api-deny-admin-write
-  namespace: shop
 spec:
   action: DENY
   rules: [{to: [{operation: {ports: ['8080'], methods: [POST], paths: [/admin]}}]}]

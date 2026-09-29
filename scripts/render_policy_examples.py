@@ -24,7 +24,7 @@ class Case:
     decision: tuple[str, ...]
     allowed: bool
     transport: str = "mTLS"
-    target: str = "shop/api"
+    target: str = "api"
     result: tuple[str, ...] = ("200 from application",)
 
 
@@ -41,15 +41,15 @@ def outgoing(namespace, imported=True, passthrough=False):
     known = (f"api.{namespace}: imported", "Route to service endpoints")
     unknown = (f"api.{namespace}: not imported",
                f"ALLOW_ANY → {service_ip}" if passthrough else "REGISTRY_ONLY → 503")
-    return Case("shop/client",
+    return Case("client",
                 (f"curl http://api.{namespace}/orders",),
                 known if imported else unknown, imported or passthrough,
-                "HTTP" if passthrough else "mTLS", f"{namespace}/api")
+                "HTTP" if passthrough else "mTLS", f"api.{namespace}")
 
 
 def peer(account, path="orders", method="GET", *, decision, allowed, plaintext=False):
     command = f"curl {'-X POST ' if method == 'POST' else ''}http://api.shop/{path}"
-    return Case(f"shop-plain/{account} · SA={account}" if plaintext else f"shop/{account} · SA={account}",
+    return Case(f"{account}-plain · SA={account}" if plaintext else f"{account} · SA={account}",
                 (command, f"SA: {account} · tls.mode: DISABLE") if plaintext else (command,),
                 decision, allowed, "HTTP" if plaintext else "mTLS",
                 result=(f"200 · {method} /{path}",))
@@ -61,7 +61,7 @@ def jwt(token, decision, allowed, path="orders", claim=""):
         command.append(f'-H "Authorization: Bearer ${token}"')
     if claim:
         command.append(claim)
-    return Case("shop/client", tuple(command), decision, allowed,
+    return Case("client", tuple(command), decision, allowed,
                 result=(f"200 · GET /{path}",))
 
 
@@ -110,7 +110,7 @@ EXAMPLES = (
 
 def summary(resource):
     kind, spec = resource["kind"], resource["spec"]
-    lines = [f"namespace: {resource['metadata']['namespace']} · all workloads"]
+    lines = []
     if kind == "Sidecar":
         lines.append("outboundTrafficPolicy: " + spec["outboundTrafficPolicy"]["mode"])
         lines.append("hosts: " + ", ".join(spec["egress"][0]["hosts"][:2]))
@@ -163,7 +163,7 @@ def draw(example, resources):
         sidecar = example.topic == "sidecar"
         frame_x, frame_w = (40, 1100) if sidecar else (650, 960)
         c.box(frame_x, y, frame_w, 211, "white", BORDER)
-        c.text(frame_x + 20, y + 13, f"Pod {case.source if sidecar else 'shop/api'}", 22, MUTED, True)
+        c.text(frame_x + 20, y + 13, f"Pod {case.source if sidecar else 'api'}", 22, MUTED, True)
         if sidecar:
             c.text(1280, y + 13, f"Pod {case.target}", 22, MUTED, True)
         else:

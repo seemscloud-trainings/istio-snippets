@@ -2,7 +2,6 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: playground-trouble
-  namespace: prod-playground-trouble
 spec:
   host: playground-trouble.prod-playground-trouble.svc.cluster.local
   exportTo: [.]

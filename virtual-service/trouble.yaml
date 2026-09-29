@@ -2,7 +2,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: playground-trouble
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]

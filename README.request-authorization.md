@@ -5,7 +5,6 @@ apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
   name: api-jwt
-  namespace: shop
 spec:
   jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ```
@@ -19,7 +18,6 @@ apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
   name: api-jwt
-  namespace: shop
 spec:
   jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ---
@@ -27,7 +25,6 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: api-jwt-access
-  namespace: shop
 spec:
   action: ALLOW
   rules: [{from: [{source: {requestPrincipals: ['*']}}]}]
@@ -42,7 +39,6 @@ apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
   name: api-jwt
-  namespace: shop
 spec:
   jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ---
@@ -50,7 +46,6 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: api-jwt-access
-  namespace: shop
 spec:
   action: ALLOW
   rules:

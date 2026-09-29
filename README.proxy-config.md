@@ -5,7 +5,6 @@ apiVersion: networking.istio.io/v1beta1
 kind: ProxyConfig
 metadata:
   name: default
-  namespace: shop
 spec:
   concurrency: 2
 ```
@@ -19,7 +18,6 @@ apiVersion: networking.istio.io/v1beta1
 kind: ProxyConfig
 metadata:
   name: default
-  namespace: shop
 spec:
   image:
     imageType: distroless
@@ -34,7 +32,6 @@ apiVersion: networking.istio.io/v1beta1
 kind: ProxyConfig
 metadata:
   name: default
-  namespace: shop
 spec:
   environmentVariables:
     ISTIO_META_DNS_CAPTURE: 'true'
@@ -43,7 +40,6 @@ apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
   name: wp
-  namespace: shop
 spec:
   hosts: [wp.pl]
   addresses: [198.51.100.10]
@@ -62,7 +58,6 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: app
-  namespace: shop
   annotations:
     proxy.istio.io/config: |
       holdApplicationUntilProxyStarts: true
@@ -79,7 +74,6 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: app
-  namespace: shop
   labels:
     app: app
   annotations:
@@ -99,7 +93,6 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: app
-  namespace: shop
   annotations:
     proxy.istio.io/config: |
       proxyStatsMatcher:

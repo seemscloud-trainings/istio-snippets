@@ -5,7 +5,6 @@ apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:
   name: client-egress
-  namespace: shop
 spec:
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
@@ -21,7 +20,6 @@ apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:
   name: client-egress
-  namespace: shop
 spec:
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
@@ -37,7 +35,6 @@ apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:
   name: client-egress
-  namespace: shop
 spec:
   outboundTrafficPolicy:
     mode: ALLOW_ANY

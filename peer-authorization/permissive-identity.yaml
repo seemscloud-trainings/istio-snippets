@@ -2,7 +2,6 @@ apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: api-mtls
-  namespace: shop
 spec:
   mtls:
     mode: PERMISSIVE
@@ -11,7 +10,6 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: api-access
-  namespace: shop
 spec:
   action: ALLOW
   rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
@@ -20,7 +18,6 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: api-plaintext-client
-  namespace: shop-plain
 spec:
   host: api.shop.svc.cluster.local
   exportTo: [.]

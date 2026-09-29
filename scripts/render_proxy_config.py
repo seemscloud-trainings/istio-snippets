@@ -35,8 +35,7 @@ def content(slug, documents):
     else:
         spec = yaml.safe_load(obj["metadata"]["annotations"]["proxy.istio.io/config"])
         title = "proxy.istio.io/config"
-    settings = [("namespace: " + obj["metadata"]["namespace"]) if obj["kind"] == "ProxyConfig"
-                else f"Pod: {obj['metadata']['namespace']}/{obj['metadata']['name']}"]
+    settings = [] if obj["kind"] == "ProxyConfig" else [f"Pod: {obj['metadata']['name']}"]
     extra = None
     if slug == "concurrency":
         workers = spec["concurrency"]
@@ -52,7 +51,7 @@ def content(slug, documents):
         settings.append("image.imageType: " + spec["image"]["imageType"])
         rows = [
             row(["curl http://wp.pl"], ["Distroless Envoy", "HTTP routing works"], ["HTTP response"], arrows=("HTTP", "")),
-            row(["kubectl exec -n shop app \\", "-c istio-proxy -- sh"],
+            row(["kubectl exec app \\", "-c istio-proxy -- sh"],
                 ["Distroless image", "No sh executable"], ["exec fails", "HTTP routing still works"],
                 problem=True, titles=("Terminal", "istio-proxy", "Result")),
         ]
@@ -126,7 +125,7 @@ def render(slug, documents):
         else:
             frame_x, frame_width = 35, 1210
         c.box(frame_x, y - 38, frame_width, 233, "white", BORDER)
-        c.text(frame_x + 20, y - 27, "Pod shop/app", 21, MUTED, True)
+        c.text(frame_x + 20, y - 27, "Pod app", 21, MUTED, True)
         for edge in (frame_x, frame_x + frame_width):
             if 590 < edge < 720 or 1220 < edge < 1360:
                 c.line([(edge, y + 74), (edge, y + 102)], "white", width=6)

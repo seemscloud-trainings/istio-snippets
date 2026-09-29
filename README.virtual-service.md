@@ -5,7 +5,6 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: playground-trouble
-  namespace: prod-playground-trouble
 spec:
   host: playground-trouble.prod-playground-trouble.svc.cluster.local
   exportTo: [.]
@@ -49,7 +48,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-no-retry
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -78,7 +76,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-retry
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -95,7 +92,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-retry-timeout
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -112,7 +108,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-fault-abort
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -129,7 +124,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-fault-delay
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -163,7 +157,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-header-fault
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -197,7 +190,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-connections
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -214,7 +206,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-timeout
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -231,7 +222,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-outlier
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -248,7 +238,6 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: trouble-rate-limit
-  namespace: prod-playground-trouble
 spec:
   hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
@@ -259,7 +248,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: local-rate-limit
-  namespace: prod-playground-trouble
 spec:
   configPatches:
   - applyTo: HTTP_FILTER

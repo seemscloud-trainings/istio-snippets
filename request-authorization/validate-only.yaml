@@ -2,6 +2,5 @@ apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
   name: api-jwt
-  namespace: shop
 spec:
   jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
