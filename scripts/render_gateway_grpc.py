@@ -33,8 +33,10 @@ def render():
     c.card(1305, 25, 440, 175, 'grpc-agent',
            ['Istiod ↔ agent ↔ gRPC xDS', 'Bootstrap / configuration', 'No Envoy in the application Pod'], 'neutral')
     c.arrow([(1525, 200), (1525, 300)], MUTED, True)
-    c.arrow([(1525, 480), (1525, 525), (290, 525), (290, 480)], GREEN)
-    c.text(700, 540, 'Client ← grpc-status: 0 (OK)', 22, GREEN)
+    c.arrow([(1525, 480), (1525, 525), (1020, 525), (1020, 480)], GREEN)
+    c.text(1210, 540, 'HTTP/2 · grpc-status: 0', 20, GREEN)
+    c.arrow([(820, 480), (820, 525), (290, 525), (290, 480)], GREEN)
+    c.text(350, 540, 'TLS + h2 · grpc-status: 0', 20, GREEN)
     c.card(55, 640, 470, 150, 'Client',
            ['grpcurl -plaintext', '-authority wp.pl gateway-green:80 list'], 'app')
     c.card(675, 640, 490, 150, 'gateway-green / Envoy',
