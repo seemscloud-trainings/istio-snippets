@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
-  name: wp-blue
+  name: gateway-blue
 spec:
   selector:
     istio: gateway-blue
@@ -15,10 +15,10 @@ spec:
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
-  name: wp-blue
+  name: gateway-blue
 spec:
   hosts: [wp.pl]
-  gateways: [wp-blue]
+  gateways: [gateway-blue]
   exportTo: [.]
   http:
   - route:

@@ -68,7 +68,7 @@ spec:
 apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
-  name: grpc
+  name: gateway-green
 spec:
   selector:
     istio: gateway-green
@@ -94,7 +94,7 @@ kind: VirtualService
 metadata:
   name: grpc
 spec:
-  gateways: [grpc]
+  gateways: [gateway-green]
   hosts: [wp.pl]
   exportTo: [.]
   http:

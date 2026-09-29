@@ -4,7 +4,7 @@
 apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
-  name: wp-green
+  name: gateway-green
 spec:
   selector:
     istio: gateway-green
@@ -18,10 +18,10 @@ spec:
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
-  name: wp-green
+  name: gateway-green
 spec:
   hosts: [wp.pl]
-  gateways: [wp-green]
+  gateways: [gateway-green]
   exportTo: [.]
   http:
   - route:
@@ -39,7 +39,7 @@ spec:
 apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
-  name: wp-blue
+  name: gateway-blue
 spec:
   selector:
     istio: gateway-blue
@@ -53,10 +53,10 @@ spec:
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
-  name: wp-blue
+  name: gateway-blue
 spec:
   hosts: [wp.pl]
-  gateways: [wp-blue]
+  gateways: [gateway-blue]
   exportTo: [.]
   http:
   - route:

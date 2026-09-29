@@ -14,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def render():
     c = Canvas((1800, 850))
     c.card(55, 25, 470, 175, 'VirtualService grpc',
-           ['hosts: wp.pl', 'gateways: [grpc]', 'destination: grpc:9000'], 'neutral')
-    c.card(675, 25, 490, 175, 'Gateway grpc',
+           ['hosts: wp.pl', 'gateways: [gateway-green]', 'destination: grpc:9000'], 'neutral')
+    c.card(675, 25, 490, 175, 'Gateway gateway-green',
            ['selector: istio=gateway-green', ':443 · TLS SIMPLE', 'credentialName: grpc-end-gw-tls'], 'neutral')
     c.arrow([(525, 112), (675, 112)], MUTED, True)
     c.text(555, 75, 'binding', 20, MUTED)
