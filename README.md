@@ -2,5 +2,6 @@
 - [VirtualService](README.virtual-service.md)
 - [Sidecar](README.sidecar.md)
 - [ProxyConfig](README.proxy-config.md)
+- [WorkloadGroup + WorkloadEntry](README.vm-workloads.md)
 - [AuthorizationPolicy + PeerAuthentication](README.peer-authorization.md)
 - [RequestAuthentication + AuthorizationPolicy](README.request-authorization.md)

@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shared-app
+---
+apiVersion: networking.istio.io/v1
+kind: WorkloadGroup
+metadata:
+  name: shared-app
+spec:
+  metadata:
+    labels:
+      app: shared-app
+  template:
+    serviceAccount: shared-app
+    network: network1
+    ports:
+      http: 8080
+  probe:
+    initialDelaySeconds: 1
+    periodSeconds: 5
+    failureThreshold: 2
+    tcpSocket:
+      port: 8080
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: shared-app
+spec:
+  hosts: [wp.pl]
+  addresses: [198.51.100.100]
+  exportTo: [.]
+  location: MESH_INTERNAL
+  resolution: STATIC
+  ports: [{number: 80, name: http, protocol: HTTP}]
+  workloadSelector:
+    labels:
+      app: shared-app
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: shared-app
+spec:
+  host: wp.pl
+  exportTo: [.]
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ProxyConfig
+metadata:
+  name: default
+spec:
+  environmentVariables:
+    ISTIO_META_DNS_CAPTURE: 'true'

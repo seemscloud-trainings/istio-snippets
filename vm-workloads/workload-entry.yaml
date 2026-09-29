@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orders
+---
+apiVersion: networking.istio.io/v1
+kind: WorkloadEntry
+metadata:
+  name: orders-vm
+spec:
+  address: 10.20.0.21
+  ports:
+    http: 8080
+  labels:
+    app: orders
+  network: network1
+  serviceAccount: orders
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: orders
+spec:
+  hosts: [orders.wp.pl]
+  addresses: [198.51.100.101]
+  exportTo: [.]
+  location: MESH_INTERNAL
+  resolution: STATIC
+  ports: [{number: 80, name: http, protocol: HTTP}]
+  workloadSelector:
+    labels:
+      app: orders
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: payments
+---
+apiVersion: networking.istio.io/v1
+kind: WorkloadEntry
+metadata:
+  name: payments-vm
+spec:
+  address: 10.20.0.22
+  ports:
+    http: 9090
+  labels:
+    app: payments
+  network: network1
+  serviceAccount: payments
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: payments
+spec:
+  hosts: [payments.wp.pl]
+  addresses: [198.51.100.102]
+  exportTo: [.]
+  location: MESH_INTERNAL
+  resolution: STATIC
+  ports: [{number: 80, name: http, protocol: HTTP}]
+  workloadSelector:
+    labels:
+      app: payments
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: inventory
+---
+apiVersion: networking.istio.io/v1
+kind: WorkloadEntry
+metadata:
+  name: inventory-vm
+spec:
+  address: 10.20.0.23
+  ports:
+    http: 7070
+  labels:
+    app: inventory
+  network: network1
+  serviceAccount: inventory
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: inventory
+spec:
+  hosts: [inventory.wp.pl]
+  addresses: [198.51.100.103]
+  exportTo: [.]
+  location: MESH_INTERNAL
+  resolution: STATIC
+  ports: [{number: 80, name: http, protocol: HTTP}]
+  workloadSelector:
+    labels:
+      app: inventory
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: vm-apps
+spec:
+  host: '*.wp.pl'
+  exportTo: [.]
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ProxyConfig
+metadata:
+  name: default
+spec:
+  environmentVariables:
+    ISTIO_META_DNS_CAPTURE: 'true'
