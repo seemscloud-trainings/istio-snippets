@@ -5,8 +5,7 @@ metadata:
   namespace: prod-playground-trouble
 spec:
   host: playground-trouble.prod-playground-trouble.svc.cluster.local
-  exportTo:
-  - '*'
+  exportTo: ['*']
   trafficPolicy:
     loadBalancer:
       simple: ROUND_ROBIN

@@ -4,13 +4,8 @@ metadata:
   name: wp
   namespace: prod-playground-trouble
 spec:
-  hosts:
-    - wp.pl
-  exportTo:
-    - "*"
+  hosts: [wp.pl]
+  exportTo: ['*']
   location: MESH_EXTERNAL
   resolution: DNS
-  ports:
-    - number: 80
-      name: http
-      protocol: HTTP
+  ports: [{number: 80, name: http, protocol: HTTP}]

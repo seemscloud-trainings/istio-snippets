@@ -10,10 +10,7 @@ spec:
   selector:
     matchLabels:
       app: api
-  jwtRules:
-    - issuer: https://wp.pl/
-      audiences: [shop-api]
-      jwksUri: https://wp.pl/.well-known/jwks.json
+  jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ```
 
 ![JWT validation](images/request-authorization/validate-only.png)
@@ -30,10 +27,7 @@ spec:
   selector:
     matchLabels:
       app: api
-  jwtRules:
-    - issuer: https://wp.pl/
-      audiences: [shop-api]
-      jwksUri: https://wp.pl/.well-known/jwks.json
+  jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
@@ -45,10 +39,7 @@ spec:
     matchLabels:
       app: api
   action: ALLOW
-  rules:
-    - from:
-        - source:
-            requestPrincipals: ["*"]
+  rules: [{from: [{source: {requestPrincipals: ['*']}}]}]
 ```
 
 ![Required JWT](images/request-authorization/require-token.png)
@@ -65,10 +56,7 @@ spec:
   selector:
     matchLabels:
       app: api
-  jwtRules:
-    - issuer: https://wp.pl/
-      audiences: [shop-api]
-      jwksUri: https://wp.pl/.well-known/jwks.json
+  jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
@@ -81,20 +69,10 @@ spec:
       app: api
   action: ALLOW
   rules:
-    - to:
-        - operation:
-            methods: [GET]
-            paths: [/healthz]
-    - from:
-        - source:
-            requestPrincipals: ["*"]
-      to:
-        - operation:
-            methods: [GET]
-            paths: [/orders]
-      when:
-        - key: request.auth.claims[role]
-          values: [admin]
+  - to: [{operation: {methods: [GET], paths: [/healthz]}}]
+  - from: [{source: {requestPrincipals: ['*']}}]
+    to: [{operation: {methods: [GET], paths: [/orders]}}]
+    when: [{key: 'request.auth.claims[role]', values: [admin]}]
 ```
 
 ![JWT role + /healthz](images/request-authorization/admin-and-health.png)

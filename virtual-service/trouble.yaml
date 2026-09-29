@@ -4,70 +4,31 @@ metadata:
   name: playground-trouble
   namespace: prod-playground-trouble
 spec:
-  hosts:
-  - wp.pl
-  gateways:
-  - mesh
-  exportTo:
-  - '*'
+  hosts: [wp.pl]
+  gateways: [mesh]
+  exportTo: ['*']
   http:
   - name: trouble-rate-limit
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-rate-limit
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-rate-limit}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
   - name: trouble-healthy
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-healthy
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-healthy}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
   - name: trouble-flaky
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-flaky
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-flaky}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
   - name: trouble-retry
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-retry
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-retry}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 2
       perTryTimeout: 1s
@@ -75,17 +36,8 @@ spec:
       retryIgnorePreviousHosts: true
     timeout: 10s
   - name: trouble-retry-timeout
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-retry-timeout
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-retry-timeout}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 2
       perTryTimeout: 500ms
@@ -93,17 +45,8 @@ spec:
       retryIgnorePreviousHosts: true
     timeout: 3s
   - name: trouble-fault-abort
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-fault-abort
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-fault-abort}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
@@ -113,17 +56,8 @@ spec:
         percentage:
           value: 50
   - name: trouble-fault-delay
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-fault-delay
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-fault-delay}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
@@ -133,20 +67,8 @@ spec:
         percentage:
           value: 100
   - name: trouble-header-fault
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-header-fault
-      headers:
-        x-demo-fault:
-          exact: 'yes'
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-header-fault}, headers: {x-demo-fault: {exact: 'yes'}}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
@@ -156,59 +78,26 @@ spec:
         percentage:
           value: 100
   - name: trouble-header-fault-healthy
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-header-fault
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: scenarios
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-header-fault}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
   - name: trouble-connections
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-connections
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: connections
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-connections}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: connections, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s
   - name: trouble-timeout
-    match:
-    - gateways:
-      - mesh
-      uri:
-        exact: /test/cosmos-timeout
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        subset: connections
-        port:
-          number: 80
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-timeout}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: connections, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 1s
   - name: trouble-no-retry
-    match:
-    - gateways:
-      - mesh
-    route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        port:
-          number: 80
+    match: [{gateways: [mesh]}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, port: {number: 80}}}]
     retries:
       attempts: 0
     timeout: 10s

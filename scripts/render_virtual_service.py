@@ -8,6 +8,7 @@ from PIL import Image
 import yaml
 
 from render_service_entry import Canvas, BLUE, GREEN, MUTED, BORDER
+from yaml_style import dump_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFESTS = ROOT / "virtual-service"
@@ -115,7 +116,7 @@ def main():
     parts = []
 
     def section(slug, title, objects, settings, cases):
-        text = yaml.safe_dump_all(objects, sort_keys=False).rstrip()
+        text = dump_documents(objects).rstrip()
         parts.extend([f"#### {title}", "```yaml\n" + text + "\n```",
                       f"![{title}](images/virtual-service/{slug}.png)"])
         write_image(slug, render(slug, settings, cases, any(obj["kind"] == "ServiceEntry" for obj in objects)), args.check)

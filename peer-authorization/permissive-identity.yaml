@@ -20,15 +20,7 @@ spec:
     matchLabels:
       app: api
   action: ALLOW
-  rules:
-    - from:
-        - source:
-            principals:
-              - cluster.local/ns/shop/sa/reader
-      to:
-        - operation:
-            methods: [GET]
-            paths: [/orders]
+  rules: [{from: [{source: {principals: [cluster.local/ns/shop/sa/reader]}}], to: [{operation: {methods: [GET], paths: [/orders]}}]}]
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
@@ -37,8 +29,7 @@ metadata:
   namespace: shop
 spec:
   host: api.shop.svc.cluster.local
-  exportTo:
-    - "."
+  exportTo: [.]
   workloadSelector:
     matchLabels:
       app: plain

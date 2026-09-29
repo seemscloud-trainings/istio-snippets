@@ -7,7 +7,4 @@ spec:
   selector:
     matchLabels:
       app: api
-  jwtRules:
-    - issuer: https://wp.pl/
-      audiences: [shop-api]
-      jwksUri: https://wp.pl/.well-known/jwks.json
+  jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]

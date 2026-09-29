@@ -11,6 +11,7 @@ from PIL import Image
 import yaml
 
 from render_service_entry import Canvas, BLUE, GREEN, MUTED, BORDER
+from yaml_style import dump_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 RED = "#a34740"
@@ -215,7 +216,7 @@ def main():
         output = ROOT / "images" / example.topic / f"{example.slug}.png"
         update_image(output, draw(example, resources), args.check)
         pages.setdefault(example.topic, []).extend([
-            f"#### {example.title}", "```yaml\n" + source.rstrip() + "\n```",
+            f"#### {example.title}", "```yaml\n" + dump_documents(resources).rstrip() + "\n```",
             f"![{example.title}]({output.relative_to(ROOT).as_posix()})",
         ])
     for topic, parts in pages.items():

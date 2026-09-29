@@ -9,7 +9,4 @@ spec:
       app: client
   outboundTrafficPolicy:
     mode: ALLOW_ANY
-  egress:
-    - hosts:
-        - "./*"
-        - "istio-system/*"
+  egress: [{hosts: [./*, istio-system/*]}]

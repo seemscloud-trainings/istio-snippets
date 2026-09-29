@@ -11,6 +11,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 import yaml
+from yaml_style import dump_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = 2
@@ -177,7 +178,7 @@ def documentation() -> str:
         relative = f"service-entry/{example.slug}.yaml"
         parts.extend([
             f"#### {example.title}",
-            "```yaml\n" + (ROOT / relative).read_text().rstrip() + "\n```",
+            "```yaml\n" + dump_documents(yaml.safe_load_all((ROOT / relative).read_text())).rstrip() + "\n```",
             f"![{example.title}](images/service-entry/{example.slug}.png)",
         ])
     return "\n\n".join(parts) + "\n"

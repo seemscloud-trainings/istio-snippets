@@ -7,10 +7,7 @@ spec:
   selector:
     matchLabels:
       app: api
-  jwtRules:
-    - issuer: https://wp.pl/
-      audiences: [shop-api]
-      jwksUri: https://wp.pl/.well-known/jwks.json
+  jwtRules: [{issuer: 'https://wp.pl/', audiences: [shop-api], jwksUri: 'https://wp.pl/.well-known/jwks.json'}]
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
@@ -22,7 +19,4 @@ spec:
     matchLabels:
       app: api
   action: ALLOW
-  rules:
-    - from:
-        - source:
-            requestPrincipals: ["*"]
+  rules: [{from: [{source: {requestPrincipals: ['*']}}]}]

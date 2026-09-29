@@ -3,13 +3,8 @@ kind: ServiceEntry
 metadata:
   name: default
 spec:
-  hosts:
-    - wp.pl
+  hosts: [wp.pl]
   location: MESH_EXTERNAL
   resolution: STATIC
-  ports:
-    - number: 443
-      name: https
-      protocol: TLS
-  endpoints:
-    - address: 8.8.8.8
+  ports: [{number: 443, name: https, protocol: TLS}]
+  endpoints: [{address: 8.8.8.8}]
