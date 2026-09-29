@@ -1,9 +1,6 @@
-#### Validate JWT when present
+#### JWT validation
 
 ```yaml
-# Apply one request-authorization example at a time; no other matching policies.
-# Existing shop/api (app=api) returns 200. Replace issuer/JWKS with your IdP.
-# $VALID: signed, unexpired JWT with this issuer and audience; $INVALID: bad signature.
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
@@ -19,14 +16,11 @@ spec:
       jwksUri: https://issuer.example.test/.well-known/jwks.json
 ```
 
-![Validate JWT when present](images/request-authorization/validate-only.png)
+![JWT validation](images/request-authorization/validate-only.png)
 
-#### Require a valid JWT
+#### Required JWT
 
 ```yaml
-# Alternative to validate-only.yaml; existing shop/api returns 200 /orders.
-# Replace issuer/JWKS with your IdP; $VALID matches issuer/audience and is unexpired.
-# $INVALID has an invalid signature.
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
@@ -57,14 +51,11 @@ spec:
             requestPrincipals: ["*"]
 ```
 
-![Require a valid JWT](images/request-authorization/require-token.png)
+![Required JWT](images/request-authorization/require-token.png)
 
-#### Public health check + JWT role for orders
+#### JWT role + /healthz
 
 ```yaml
-# Alternative example; existing shop/api returns 200 /orders and /healthz.
-# Replace issuer/JWKS; valid $ADMIN has role=admin, valid $USER has role=user.
-# /healthz permits missing JWT; an invalid supplied JWT is still rejected.
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
@@ -106,4 +97,4 @@ spec:
           values: [admin]
 ```
 
-![Public health check + JWT role for orders](images/request-authorization/admin-and-health.png)
+![JWT role + /healthz](images/request-authorization/admin-and-health.png)

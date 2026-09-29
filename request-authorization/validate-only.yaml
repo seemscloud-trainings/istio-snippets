@@ -1,6 +1,3 @@
-# Apply one request-authorization example at a time; no other matching policies.
-# Existing shop/api (app=api) returns 200. Replace issuer/JWKS with your IdP.
-# $VALID: signed, unexpired JWT with this issuer and audience; $INVALID: bad signature.
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:

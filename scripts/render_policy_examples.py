@@ -65,41 +65,41 @@ def jwt(token, decision, allowed, path="orders", claim=""):
 
 
 EXAMPLES = (
-    Example("sidecar", "local-only", "Import only the local namespace", (
+    Example("sidecar", "local-only", "Local namespace", (
         outgoing("shop"), outgoing("payments", False),
     )),
-    Example("sidecar", "import-service", "Import one service from another namespace", (
+    Example("sidecar", "import-service", "One remote service", (
         outgoing("shop"), outgoing("payments"), outgoing("reporting", False),
     )),
-    Example("sidecar", "allow-any", "ALLOW_ANY: an unimported service can still be reached", (
+    Example("sidecar", "allow-any", "ALLOW_ANY", (
         outgoing("shop"), outgoing("payments", False, True),
     )),
-    Example("peer-authorization", "strict-reader", "STRICT mTLS + allow one ServiceAccount", (
+    Example("peer-authorization", "strict-reader", "STRICT + ServiceAccount", (
         peer("reader", decision=("mTLS: accepted", "ALLOW reader + GET /orders"), allowed=True),
         peer("writer", decision=("mTLS: accepted", "403 · writer is not allowed"), allowed=False),
         peer("reader", decision=("STRICT: plaintext rejected", "No HTTP response"), allowed=False, plaintext=True),
     )),
-    Example("peer-authorization", "permissive-identity", "PERMISSIVE does not grant a ServiceAccount identity", (
+    Example("peer-authorization", "permissive-identity", "PERMISSIVE + ServiceAccount", (
         peer("reader", decision=("mTLS: identity = shop/reader", "ALLOW → application"), allowed=True),
         peer("reader", decision=("Plaintext: no verified identity", "403 · ALLOW rule not matched"), allowed=False, plaintext=True),
         peer("writer", decision=("mTLS: identity = shop/writer", "403 · ALLOW rule not matched"), allowed=False),
     )),
-    Example("peer-authorization", "deny-admin-write", "DENY wins over ALLOW", (
+    Example("peer-authorization", "deny-admin-write", "DENY + ALLOW", (
         peer("reader", "admin", decision=("DENY: not matched", "ALLOW: reader + GET /admin"), allowed=True),
         peer("reader", "admin", "POST", decision=("DENY: POST /admin", "403 · ALLOW cannot override"), allowed=False),
         peer("reader", "orders", "POST", decision=("DENY: not matched", "ALLOW: reader + POST /orders"), allowed=True),
     )),
-    Example("request-authorization", "validate-only", "Validate JWT when present", (
+    Example("request-authorization", "validate-only", "JWT validation", (
         jwt("", ("No JWT: validation skipped", "No AuthorizationPolicy"), True),
         jwt("VALID", ("JWT signature / iss / aud / exp: OK", "No AuthorizationPolicy"), True),
         jwt("INVALID", ("JWT signature: invalid", "401 · rejected by Envoy"), False),
     )),
-    Example("request-authorization", "require-token", "Require a valid JWT", (
+    Example("request-authorization", "require-token", "Required JWT", (
         jwt("", ("No authenticated JWT principal", "403 · ALLOW rule not matched"), False),
         jwt("INVALID", ("JWT signature: invalid", "401 · authorization not reached"), False),
         jwt("VALID", ("JWT valid: principal exists", "ALLOW requestPrincipals: *"), True),
     )),
-    Example("request-authorization", "admin-and-health", "Public health check + JWT role for orders", (
+    Example("request-authorization", "admin-and-health", "JWT role + /healthz", (
         jwt("", ("No JWT: validation skipped", "ALLOW GET /healthz"), True, "healthz"),
         jwt("ADMIN", ("JWT valid · role=admin", "ALLOW GET /orders"), True, claim="JWT claim: role=admin"),
         jwt("USER", ("JWT valid · role=user", "403 · admin role required"), False, claim="JWT claim: role=user"),

@@ -1,5 +1,3 @@
-# Alternative to local-only.yaml; existing Services are exported to shop.
-# Client: shop/client, app=client. Client/API sidecars injected; APIs return 200 /orders.
 apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:

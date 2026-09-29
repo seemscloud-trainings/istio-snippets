@@ -1,6 +1,3 @@
-# Alternative example; existing shop/api returns 200 /orders and /healthz.
-# Replace issuer/JWKS; valid $ADMIN has role=admin, valid $USER has role=user.
-# /healthz permits missing JWT; an invalid supplied JWT is still rejected.
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:

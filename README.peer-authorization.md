@@ -1,9 +1,6 @@
-#### STRICT mTLS + allow one ServiceAccount
+#### STRICT + ServiceAccount
 
 ```yaml
-# Apply one peer-authorization example at a time; no other matching policies.
-# Existing shop/api (app=api): HTTP Service port 80 -> Pod port 8080; returns 200.
-# Mesh trust domain: cluster.local. Injected clients use automatic Istio mTLS.
 apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
@@ -37,13 +34,11 @@ spec:
             paths: [/orders]
 ```
 
-![STRICT mTLS + allow one ServiceAccount](images/peer-authorization/strict-reader.png)
+![STRICT + ServiceAccount](images/peer-authorization/strict-reader.png)
 
-#### PERMISSIVE does not grant a ServiceAccount identity
+#### PERMISSIVE + ServiceAccount
 
 ```yaml
-# Alternative to strict-reader.yaml; existing shop/api returns 200 /orders.
-# Plaintext passes PeerAuthentication but carries no authenticated ServiceAccount.
 apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
@@ -77,13 +72,11 @@ spec:
             paths: [/orders]
 ```
 
-![PERMISSIVE does not grant a ServiceAccount identity](images/peer-authorization/permissive-identity.png)
+![PERMISSIVE + ServiceAccount](images/peer-authorization/permissive-identity.png)
 
-#### DENY wins over ALLOW
+#### DENY + ALLOW
 
 ```yaml
-# Alternative example; existing shop/api returns 200 for GET/POST /orders and /admin.
-# DENY is evaluated before ALLOW. Workload port is 8080 (Service port is 80).
 apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
@@ -133,4 +126,4 @@ spec:
             paths: [/admin]
 ```
 
-![DENY wins over ALLOW](images/peer-authorization/deny-admin-write.png)
+![DENY + ALLOW](images/peer-authorization/deny-admin-write.png)

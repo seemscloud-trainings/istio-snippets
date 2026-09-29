@@ -1,9 +1,6 @@
-#### Import only the local namespace
+#### Local namespace
 
 ```yaml
-# Alternatives: apply one Sidecar example at a time in namespace shop.
-# Existing HTTP Services: api.shop, api.payments, api.reporting (port 80).
-# Client: shop/client, app=client. Client/API sidecars injected; APIs return 200 /orders.
 apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:
@@ -21,13 +18,11 @@ spec:
         - "istio-system/*"
 ```
 
-![Import only the local namespace](images/sidecar/local-only.png)
+![Local namespace](images/sidecar/local-only.png)
 
-#### Import one service from another namespace
+#### One remote service
 
 ```yaml
-# Alternative to local-only.yaml; existing Services are exported to shop.
-# Client: shop/client, app=client. Client/API sidecars injected; APIs return 200 /orders.
 apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:
@@ -46,14 +41,11 @@ spec:
         - "payments/api.payments.svc.cluster.local"
 ```
 
-![Import one service from another namespace](images/sidecar/import-service.png)
+![One remote service](images/sidecar/import-service.png)
 
-#### ALLOW_ANY: an unimported service can still be reached
+#### ALLOW_ANY
 
 ```yaml
-# Alternative to local-only.yaml. Sidecar scopes configuration, not network security.
-# Existing api.payments accepts plaintext HTTP; no destination authorization policy.
-# Client: shop/client, app=client. Client/API sidecars injected; APIs return 200 /orders.
 apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:
@@ -71,4 +63,4 @@ spec:
         - "istio-system/*"
 ```
 
-![ALLOW_ANY: an unimported service can still be reached](images/sidecar/allow-any.png)
+![ALLOW_ANY](images/sidecar/allow-any.png)

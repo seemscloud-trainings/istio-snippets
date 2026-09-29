@@ -1,5 +1,3 @@
-# Alternative example; existing shop/api returns 200 for GET/POST /orders and /admin.
-# DENY is evaluated before ALLOW. Workload port is 8080 (Service port is 80).
 apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:

@@ -1,6 +1,3 @@
-# Alternatives: apply one Sidecar example at a time in namespace shop.
-# Existing HTTP Services: api.shop, api.payments, api.reporting (port 80).
-# Client: shop/client, app=client. Client/API sidecars injected; APIs return 200 /orders.
 apiVersion: networking.istio.io/v1
 kind: Sidecar
 metadata:

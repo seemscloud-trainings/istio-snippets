@@ -1,6 +1,3 @@
-# Alternative to validate-only.yaml; existing shop/api returns 200 /orders.
-# Replace issuer/JWKS with your IdP; $VALID matches issuer/audience and is unexpired.
-# $INVALID has an invalid signature.
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
