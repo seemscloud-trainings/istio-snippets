@@ -32,6 +32,22 @@ spec:
         - operation:
             methods: [GET]
             paths: [/orders]
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: api-plaintext-client
+  namespace: shop
+spec:
+  host: api.shop.svc.cluster.local
+  exportTo:
+    - "."
+  workloadSelector:
+    matchLabels:
+      app: plain
+  trafficPolicy:
+    tls:
+      mode: DISABLE
 ```
 
 ![STRICT + ServiceAccount](images/peer-authorization/strict-reader.png)
@@ -70,6 +86,22 @@ spec:
         - operation:
             methods: [GET]
             paths: [/orders]
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: api-plaintext-client
+  namespace: shop
+spec:
+  host: api.shop.svc.cluster.local
+  exportTo:
+    - "."
+  workloadSelector:
+    matchLabels:
+      app: plain
+  trafficPolicy:
+    tls:
+      mode: DISABLE
 ```
 
 ![PERMISSIVE + ServiceAccount](images/peer-authorization/permissive-identity.png)

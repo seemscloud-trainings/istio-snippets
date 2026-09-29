@@ -48,8 +48,8 @@ def outgoing(namespace, imported=True, passthrough=False):
 
 def peer(account, path="orders", method="GET", *, decision, allowed, plaintext=False):
     command = f"curl {'-X POST ' if method == 'POST' else ''}http://api.shop/{path}"
-    return Case(f"shop/{account}{'-plain' if plaintext else ''} · SA={account}",
-                (command, "No Envoy: plaintext" if plaintext else "Envoy: automatic mTLS"),
+    return Case(f"shop/{account}-plain · app=plain" if plaintext else f"shop/{account} · SA={account}",
+                (command, f"SA: {account} · tls.mode: DISABLE") if plaintext else (command,),
                 decision, allowed, "HTTP" if plaintext else "mTLS",
                 result=(f"200 · {method} /{path}",))
 
@@ -60,7 +60,7 @@ def jwt(token, decision, allowed, path="orders", claim=""):
         command.append(f'-H "Authorization: Bearer ${token}"')
     if claim:
         command.append(claim)
-    return Case("shop/client · Envoy injected", tuple(command), decision, allowed,
+    return Case("shop/client", tuple(command), decision, allowed,
                 result=(f"200 · GET /{path}",))
 
 
@@ -77,7 +77,7 @@ EXAMPLES = (
     Example("peer-authorization", "strict-reader", "STRICT + ServiceAccount", (
         peer("reader", decision=("mTLS: accepted", "ALLOW reader + GET /orders"), allowed=True),
         peer("writer", decision=("mTLS: accepted", "403 · writer is not allowed"), allowed=False),
-        peer("reader", decision=("STRICT: plaintext rejected", "No HTTP response"), allowed=False, plaintext=True),
+        peer("reader", decision=("STRICT: plaintext rejected", "Client Envoy returns 503"), allowed=False, plaintext=True),
     )),
     Example("peer-authorization", "permissive-identity", "PERMISSIVE + ServiceAccount", (
         peer("reader", decision=("mTLS: identity = shop/reader", "ALLOW → application"), allowed=True),
@@ -109,13 +109,17 @@ EXAMPLES = (
 
 def summary(resource):
     kind, spec = resource["kind"], resource["spec"]
-    selector = spec["workloadSelector"]["labels"] if kind == "Sidecar" else spec["selector"]["matchLabels"]
+    selector = (spec["workloadSelector"]["labels"] if kind == "Sidecar" else
+                spec["workloadSelector"]["matchLabels"] if kind == "DestinationRule" else
+                spec["selector"]["matchLabels"])
     label = selector["app"]
     lines = [f"namespace: {resource['metadata']['namespace']} · app={label}"]
     if kind == "Sidecar":
         lines.append("outboundTrafficPolicy: " + spec["outboundTrafficPolicy"]["mode"])
         lines.append("hosts: " + ", ".join(spec["egress"][0]["hosts"][:2]))
         lines.extend(spec["egress"][0]["hosts"][2:])
+    elif kind == "DestinationRule":
+        lines.extend(["host: " + spec["host"], "tls.mode: " + spec["trafficPolicy"]["tls"]["mode"]])
     elif kind == "PeerAuthentication":
         lines.append("mtls.mode: " + spec["mtls"]["mode"])
     elif kind == "RequestAuthentication":
