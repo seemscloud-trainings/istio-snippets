@@ -60,7 +60,7 @@ def main():
             f'![Gateway {color} binding and request flow](images/gateway/{color}.png)',
         ])
     content = '\n\n'.join(sections) + '\n'
-    page = ROOT / 'README.gateway.md'
+    page = ROOT / 'GATEWAY.md'
     if args.check:
         assert page.read_text() == content, page
         print('Gateway guide and two diagrams match their manifests.')

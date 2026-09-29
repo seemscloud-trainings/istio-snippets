@@ -217,7 +217,7 @@ def main():
             f"![{example.title}]({output.relative_to(ROOT).as_posix()})",
         ])
     for topic, parts in pages.items():
-        output = ROOT / f"README.{topic}.md"
+        output = ROOT / f"{topic.upper()}.md"
         content = "\n\n".join(parts) + "\n"
         if args.check:
             if not output.is_file() or output.read_text() != content:

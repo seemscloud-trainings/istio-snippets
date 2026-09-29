@@ -168,7 +168,7 @@ def main():
         else:
             output.parent.mkdir(parents=True, exist_ok=True)
             image.save(output, "PNG", optimize=True)
-    page = ROOT / "README.vm-workloads.md"
+    page = ROOT / "VM-WORKLOADS.md"
     content = docs()
     if args.check:
         if page.read_text() != content:

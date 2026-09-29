@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: grpc
+spec:
+  selector:
+    istio: gateway-green
+  servers:
+  - hosts: [wp.pl]
+    port:
+      name: http2
+      protocol: HTTP2
+      number: 80
+    tls:
+      httpsRedirect: true
+  - hosts: [wp.pl]
+    port:
+      name: https
+      protocol: HTTPS
+      number: 443
+    tls:
+      mode: SIMPLE
+      credentialName: grpc-end-gw-tls
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: grpc
+spec:
+  gateways: [grpc]
+  hosts: [wp.pl]
+  exportTo: [.]
+  http: [{route: [{destination: {host: grpc, port: {number: 9000}}}]}]

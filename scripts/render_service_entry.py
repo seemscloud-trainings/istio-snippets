@@ -205,7 +205,7 @@ def main() -> None:
             output.parent.mkdir(parents=True, exist_ok=True)
             image.save(output, "PNG", optimize=True)
             print(output.relative_to(ROOT))
-    page = ROOT / "README.service-entry.md"
+    page = ROOT / "SERVICE-ENTRY.md"
     content = documentation()
     if args.check:
         if not page.is_file() or page.read_text() != content:

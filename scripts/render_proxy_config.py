@@ -165,7 +165,7 @@ def main():
             image.save(output, "PNG", optimize=True)
         parts.extend([f"#### {title}", "```yaml\n" + dump_documents(documents).rstrip() + "\n```",
                       f"![{title}]({output.relative_to(ROOT).as_posix()})"])
-    output = ROOT / "README.proxy-config.md"
+    output = ROOT / "PROXY-CONFIG.md"
     text = "\n\n".join(parts) + "\n"
     if args.check:
         if output.read_text() != text:

@@ -160,7 +160,7 @@ def main():
         elif slug == "rate-limit":
             settings.append("EnvoyFilter: 3 tokens / 10 s per inbound Envoy")
         section(slug, title, [snippet, ef] if slug == "rate-limit" else [snippet], settings, cases)
-    path = ROOT / "README.virtual-service.md"
+    path = ROOT / "VIRTUAL-SERVICE.md"
     text = "\n\n".join(parts) + "\n"
     if args.check:
         if path.read_text() != text:
