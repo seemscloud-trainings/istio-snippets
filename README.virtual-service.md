@@ -1,18 +1,6 @@
-#### Host + subsets
+#### Subsets
 
 ```yaml
-apiVersion: networking.istio.io/v1
-kind: ServiceEntry
-metadata:
-  name: wp
-  namespace: prod-playground-trouble
-spec:
-  hosts: [wp.pl]
-  exportTo: ['*']
-  location: MESH_EXTERNAL
-  resolution: DNS
-  ports: [{number: 80, name: http, protocol: HTTP}]
----
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
@@ -52,7 +40,7 @@ spec:
         consecutive5xxErrors: 0
 ```
 
-![Host + subsets](images/virtual-service/host.png)
+![Subsets](images/virtual-service/host.png)
 
 #### No retry
 
@@ -63,7 +51,7 @@ metadata:
   name: trouble-no-retry
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http:
@@ -92,7 +80,7 @@ metadata:
   name: trouble-retry
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http: [{name: trouble-retry, match: [{gateways: [mesh], uri: {exact: /test/cosmos-retry}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 2, perTryTimeout: 1s, retryOn: 5xx, retryIgnorePreviousHosts: true}, timeout: 10s}]
@@ -109,7 +97,7 @@ metadata:
   name: trouble-retry-timeout
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http: [{name: trouble-retry-timeout, match: [{gateways: [mesh], uri: {exact: /test/cosmos-retry-timeout}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 2, perTryTimeout: 500ms, retryOn: 5xx, retryIgnorePreviousHosts: true}, timeout: 3s}]
@@ -126,7 +114,7 @@ metadata:
   name: trouble-fault-abort
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http: [{name: trouble-fault-abort, match: [{gateways: [mesh], uri: {exact: /test/cosmos-fault-abort}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s, fault: {abort: {httpStatus: 503, percentage: {value: 50}}}}]
@@ -143,7 +131,7 @@ metadata:
   name: trouble-fault-delay
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http:
@@ -177,7 +165,7 @@ metadata:
   name: trouble-header-fault
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http:
@@ -211,7 +199,7 @@ metadata:
   name: trouble-connections
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http: [{name: trouble-connections, match: [{gateways: [mesh], uri: {exact: /test/cosmos-connections}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: connections, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s}]
@@ -228,7 +216,7 @@ metadata:
   name: trouble-timeout
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http: [{name: trouble-timeout, match: [{gateways: [mesh], uri: {exact: /test/cosmos-timeout}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: connections, port: {number: 80}}}], retries: {attempts: 0}, timeout: 1s}]
@@ -245,7 +233,7 @@ metadata:
   name: trouble-outlier
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http: [{name: trouble-no-retry, match: [{gateways: [mesh]}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s}]
@@ -262,7 +250,7 @@ metadata:
   name: trouble-rate-limit
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http: [{name: trouble-rate-limit, match: [{gateways: [mesh], uri: {exact: /test/cosmos-rate-limit}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s}]

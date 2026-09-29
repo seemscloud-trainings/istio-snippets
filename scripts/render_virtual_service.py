@@ -12,12 +12,15 @@ from yaml_style import dump_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFESTS = ROOT / "virtual-service"
+HOST = yaml.safe_load((MANIFESTS / "trouble.yaml").read_text())["spec"]["hosts"][0]
 
 
 def case(path, envoy, backend, *, reaches=True, header=False, inbound=False,
          problem=False, backend_problem=False):
-    command = (["curl -H 'x-demo-fault: yes' \\", f"http://wp.pl/test/cosmos-{path}"] if header
-               else [f"curl http://wp.pl/test/cosmos-{path}"])
+    first, rest = HOST.split(".", 1)
+    command = (["curl -H 'x-demo-fault: yes' \\", f"http://{first}.\\"] if header
+               else [f"curl http://{first}.\\"])
+    command.extend([rest + "\\", f"/test/cosmos-{path}"])
     return dict(command=command, envoy=envoy, backend=backend, reaches=reaches, inbound=inbound,
                 problem=problem or not reaches, backend_problem=backend_problem)
 
@@ -69,23 +72,21 @@ GROUPS = [
 ]
 
 
-def render(slug, settings, cases, show_dns=False):
+def render(slug, settings, cases):
     height = max(160, 85 + 31 * len(settings))
     top = height + 85
-    c = Canvas((1800, top + len(cases) * 230 + 10))
-    if show_dns:
-        c.card(60, 25, 610, 130, "DNS", ["wp.pl → 198.51.100.10"], "dns")
-    c.card(780 if show_dns else 415, 25, 970, height, "Routing", settings, "neutral")
+    c = Canvas((1800, top + len(cases) * 270 + 10))
+    c.card(415, 25, 970, height, "Routing", settings, "neutral")
     for i, item in enumerate(cases):
-        y = top + i * 230
-        c.box(35, y, 1210, 210, "white", BORDER)
+        y = top + i * 270
+        c.box(35, y, 1210, 250, "white", BORDER)
         c.text(60, y + 12, "Client Pod", 23, MUTED, True)
         c.text(1350, y + 12, "Trouble Pods", 23, MUTED, True)
-        c.card(60, y + 48, 610, 145, "Container", item["command"], "app")
-        c.card(780, y + 48, 430, 145, "Envoy", item["envoy"], "blocked" if item["problem"] else "proxy")
-        c.card(1350, y + 48, 400, 145, "Inbound Envoy" if item["inbound"] else "Envoy → API",
+        c.card(60, y + 48, 610, 185, "Container", item["command"], "app")
+        c.card(780, y + 48, 430, 185, "Envoy", item["envoy"], "blocked" if item["problem"] else "proxy")
+        c.card(1350, y + 48, 400, 185, "Inbound Envoy" if item["inbound"] else "Envoy → API",
                item["backend"], "neutral" if not item["reaches"] else "blocked" if item["backend_problem"] else "target")
-        mid = y + 125
+        mid = y + 145
         c.line([(1245, mid - 14), (1245, mid + 14)], "white", width=6)
         c.arrow([(670, mid), (780, mid)], BLUE)
         c.text(690, mid - 33, "HTTP", 21, BLUE)
@@ -126,16 +127,16 @@ def main():
         text = dump_documents(objects).rstrip()
         parts.extend([f"#### {title}", "```yaml\n" + text + "\n```",
                       f"![{title}](images/virtual-service/{slug}.png)"])
-        write_image(slug, render(slug, settings, cases, any(obj["kind"] == "ServiceEntry" for obj in objects)), args.check)
+        write_image(slug, render(slug, settings, cases), args.check)
 
-    section("host", "Host + subsets", [read("wp.yaml"), dr],
-            ["ServiceEntry: wp.pl", "VirtualService routes to playground-trouble", "DestinationRule subsets: scenarios / connections", "No subset → default outlier policy"],
-            [case("healthy", ["Host: wp.pl → Trouble Service", "Subset: scenarios"], ["Backend: playground-trouble", "Port: 80"] )])
+    section("host", "Subsets", [dr],
+            [f"host: {HOST}", "DestinationRule subsets: scenarios / connections", "No subset → default outlier policy"],
+            [case("healthy", ["Trouble Service", "Subset: scenarios"], ["Backend: playground-trouble", "Port: 80"] )])
     for slug, title, names, cases in GROUPS:
         snippet = copy.deepcopy(vs)
         snippet["metadata"]["name"] = "trouble-" + slug
         snippet["spec"]["http"] = [routes[name] for name in names]
-        settings = ["VirtualService: wp.pl → playground-trouble:80"]
+        settings = [f"host: {HOST}"]
         first = next((routes[name] for name in names if "fault" in routes[name]), routes[names[0]])
         if "fault" in first:
             fault = first["fault"]

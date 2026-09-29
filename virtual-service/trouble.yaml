@@ -4,7 +4,7 @@ metadata:
   name: playground-trouble
   namespace: prod-playground-trouble
 spec:
-  hosts: [wp.pl]
+  hosts: [playground-trouble.prod-playground-trouble.svc.cluster.local]
   gateways: [mesh]
   exportTo: ['*']
   http:
