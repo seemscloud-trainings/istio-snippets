@@ -11,6 +11,16 @@ spec:
       name: http
       protocol: HTTP
     hosts: [wp.pl]
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts: [wp.pl]
+    tls:
+      mode: SIMPLE
+      credentialName: wp-pl-tls
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService

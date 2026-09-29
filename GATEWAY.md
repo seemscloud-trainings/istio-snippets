@@ -1,38 +1,3 @@
-#### gateway-green
-
-```yaml
-apiVersion: networking.istio.io/v1
-kind: Gateway
-metadata:
-  name: gateway-green
-spec:
-  selector:
-    istio: gateway-green
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts: [wp.pl]
----
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: gateway-green
-spec:
-  hosts: [wp.pl]
-  gateways: [gateway-green]
-  exportTo: [.]
-  http:
-  - route:
-    - destination:
-        host: playground-trouble.prod-playground-trouble.svc.cluster.local
-        port:
-          number: 80
-```
-
-![Gateway green binding and request flow](images/gateway/green.png)
-
 #### gateway-blue
 
 ```yaml
@@ -49,6 +14,16 @@ spec:
       name: http
       protocol: HTTP
     hosts: [wp.pl]
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts: [wp.pl]
+    tls:
+      mode: SIMPLE
+      credentialName: wp-pl-tls
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
