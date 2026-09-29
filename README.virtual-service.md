@@ -146,7 +146,24 @@ spec:
   hosts: [wp.pl]
   gateways: [mesh]
   exportTo: ['*']
-  http: [{name: trouble-fault-delay, match: [{gateways: [mesh], uri: {exact: /test/cosmos-fault-delay}}], route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}], retries: {attempts: 0}, timeout: 10s, fault: {delay: {fixedDelay: 2s, percentage: {value: 100}}}}]
+  http:
+  - name: trouble-healthy
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-healthy}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
+    retries:
+      attempts: 0
+    timeout: 10s
+  - name: trouble-fault-delay
+    match: [{gateways: [mesh], uri: {exact: /test/cosmos-fault-delay}}]
+    route: [{destination: {host: playground-trouble.prod-playground-trouble.svc.cluster.local, subset: scenarios, port: {number: 80}}}]
+    retries:
+      attempts: 0
+    timeout: 10s
+    fault:
+      delay:
+        fixedDelay: 2s
+        percentage:
+          value: 100
 ```
 
 ![Fault delay](images/virtual-service/fault-delay.png)

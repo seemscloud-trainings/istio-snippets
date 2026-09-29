@@ -14,50 +14,57 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFESTS = ROOT / "virtual-service"
 
 
-def case(path, envoy, backend, *, reaches=True, header=False, inbound=False):
+def case(path, envoy, backend, *, reaches=True, header=False, inbound=False,
+         problem=False, backend_problem=False):
     command = (["curl -H 'x-demo-fault: yes' \\", f"http://wp.pl/test/cosmos-{path}"] if header
                else [f"curl http://wp.pl/test/cosmos-{path}"])
-    return dict(command=command, envoy=envoy, backend=backend, reaches=reaches, inbound=inbound)
+    return dict(command=command, envoy=envoy, backend=backend, reaches=reaches, inbound=inbound,
+                problem=problem or not reaches, backend_problem=backend_problem)
 
 
 GROUPS = [
     ("no-retry", "No retry", ["trouble-healthy", "trouble-flaky"], [
         case("healthy", ["No retry", "Client ← 200"], ["200 · 0 ms"]),
         case("flaky", ["No retry", "Client ← 200"], ["50%: 200 · 0 ms"]),
-        case("flaky", ["No retry", "Client ← 503"], ["50%: 503 · 0 ms"]),
+        case("flaky", ["No retry", "Client ← 503"], ["50%: 503 · 0 ms"], problem=True, backend_problem=True),
     ]),
     ("retry", "Retry", ["trouble-retry"], [
-        case("retry", ["503 → retry → 200", "Client ← 200"], ["Attempt 1: 503", "Attempt 2: 200"]),
-        case("retry", ["503 → retry → retry", "Client ← 503"], ["All 3 attempts: 503"]),
+        case("retry", ["First attempt succeeds", "Client ← 200"], ["Attempt 1: 200"]),
+        case("retry", ["503 → retry → 200", "Client ← 200"], ["Attempt 1: 503", "Attempt 2: 200"], backend_problem=True),
+        case("retry", ["503 → retry → retry", "Client ← 503"], ["All 3 attempts: 503"], problem=True, backend_problem=True),
     ]),
     ("retry-timeout", "Per-try timeout", ["trouble-retry-timeout"], [
-        case("retry-timeout", ["500 ms per try · max 3 tries", "Client ← 504 · budget 3 s"], ["Response takes 2 s", "Each try times out"]),
+        case("retry-timeout", ["100 ms < 500 ms per try", "Client ← 200 · no retry"], ["200 after 100 ms"]),
+        case("retry-timeout", ["500 ms per try · max 3 tries", "Client ← 504 · budget 3 s"], ["Response takes 2 s", "Each try times out"], problem=True, backend_problem=True),
     ]),
     ("fault-abort", "Fault abort", ["trouble-fault-abort"], [
-        case("fault-abort", ["50%: abort here", "Client ← 503"], ["Not reached"], reaches=False),
         case("fault-abort", ["50%: forward", "Client ← 200"], ["200 · 0 ms"]),
+        case("fault-abort", ["50%: abort here", "Client ← 503"], ["Not reached"], reaches=False),
     ]),
-    ("fault-delay", "Fault delay", ["trouble-fault-delay"], [
-        case("fault-delay", ["Wait 2 s → forward", "Client ← 200"], ["200 · 0 ms"]),
+    ("fault-delay", "Fault delay", ["trouble-healthy", "trouble-fault-delay"], [
+        case("healthy", ["No injected delay", "Client ← 200"], ["200 · 0 ms"]),
+        case("fault-delay", ["Injected delay: 2 s", "Client ← 200 after delay"], ["200 · 0 ms"], problem=True),
     ]),
     ("header-fault", "Header match", ["trouble-header-fault", "trouble-header-fault-healthy"], [
-        case("header-fault", ["x-demo-fault: yes", "Client ← 503 · abort here"], ["Not reached"], reaches=False, header=True),
         case("header-fault", ["Fallback route → forward", "Client ← 200"], ["200 · 0 ms"]),
+        case("header-fault", ["x-demo-fault: yes", "Client ← 503 · abort here"], ["Not reached"], reaches=False, header=True),
     ]),
     ("connections", "Connection pool", ["trouble-connections"], [
         case("connections", ["1 active + 1 pending", "Client ← 200"], ["200 after 3 s"]),
         case("connections", ["Pool full → reject overflow", "Client ← 503"], ["Not reached"], reaches=False),
     ]),
     ("timeout", "Request timeout", ["trouble-timeout"], [
-        case("timeout", ["Timeout: 1 s · no retries", "Client ← 504"], ["Response takes 3 s", "Client stops waiting at 1 s"]),
+        case("timeout", ["100 ms < timeout 1 s", "Client ← 200 after 100 ms"], ["200 after 100 ms"]),
+        case("timeout", ["1 s elapsed → stop waiting", "Client ← 504 after 1 s"], ["Response takes 3 s", "3 s > timeout 1 s"], problem=True, backend_problem=True),
     ]),
     ("outlier", "Outlier detection", ["trouble-no-retry"], [
-        case("outlier", ["3 consecutive 5xx from Pod A", "consecutive5xxErrors: 3"], ["Pod A: 503, 503, 503"]),
+        case("outlier", ["Pod A healthy → route normally", "Client ← 200"], ["Pod A: 200"]),
+        case("outlier", ["3 consecutive 5xx from Pod A", "Pod A ejected · base 5 s"], ["Pod A: 503, 503, 503"], problem=True, backend_problem=True),
         case("outlier", ["Pod A ejected · base 5 s", "Client ← 200 from Pod B"], ["Pod B: 200"]),
     ]),
     ("rate-limit", "Local rate limit", ["trouble-rate-limit"], [
         case("rate-limit", ["Forward to Trouble", "Client ← 200"], ["Same inbound Envoy", "3 tokens / 10 s → API 200"], inbound=True),
-        case("rate-limit", ["Forward to Trouble", "Client ← 429"], ["Bucket empty → 429", "API not reached"], inbound=True),
+        case("rate-limit", ["Forward to Trouble", "Client ← 429"], ["Bucket empty → 429", "API not reached"], inbound=True, problem=True, backend_problem=True),
     ]),
 ]
 
@@ -75,9 +82,9 @@ def render(slug, settings, cases, show_dns=False):
         c.text(60, y + 12, "Client Pod", 23, MUTED, True)
         c.text(1350, y + 12, "Trouble Pods", 23, MUTED, True)
         c.card(60, y + 48, 610, 145, "Container", item["command"], "app")
-        c.card(780, y + 48, 430, 145, "Envoy", item["envoy"], "proxy" if item["reaches"] else "blocked")
+        c.card(780, y + 48, 430, 145, "Envoy", item["envoy"], "blocked" if item["problem"] else "proxy")
         c.card(1350, y + 48, 400, 145, "Inbound Envoy" if item["inbound"] else "Envoy → API",
-               item["backend"], "target" if item["reaches"] else "neutral")
+               item["backend"], "neutral" if not item["reaches"] else "blocked" if item["backend_problem"] else "target")
         mid = y + 125
         c.line([(1245, mid - 14), (1245, mid + 14)], "white", width=6)
         c.arrow([(670, mid), (780, mid)], BLUE)
@@ -129,7 +136,7 @@ def main():
         snippet["metadata"]["name"] = "trouble-" + slug
         snippet["spec"]["http"] = [routes[name] for name in names]
         settings = ["VirtualService: wp.pl → playground-trouble:80"]
-        first = routes[names[0]]
+        first = next((routes[name] for name in names if "fault" in routes[name]), routes[names[0]])
         if "fault" in first:
             fault = first["fault"]
             if "abort" in fault:

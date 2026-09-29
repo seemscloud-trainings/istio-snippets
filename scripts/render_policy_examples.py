@@ -96,9 +96,9 @@ EXAMPLES = (
         jwt("INVALID", ("JWT signature: invalid", "401 · rejected by Envoy"), False),
     )),
     Example("request-authorization", "require-token", "Required JWT", (
+        jwt("VALID", ("JWT valid: principal exists", "ALLOW requestPrincipals: *"), True),
         jwt("", ("No authenticated JWT principal", "403 · ALLOW rule not matched"), False),
         jwt("INVALID", ("JWT signature: invalid", "401 · authorization not reached"), False),
-        jwt("VALID", ("JWT valid: principal exists", "ALLOW requestPrincipals: *"), True),
     )),
     Example("request-authorization", "admin-and-health", "JWT role + /healthz", (
         jwt("", ("No JWT: validation skipped", "ALLOW GET /healthz"), True, "healthz"),
