@@ -1,7 +1,3 @@
-#### gRPC → gateway-green → grpc:9000
-
-Use the existing gateway namespace for these resources and the TLS Secret. Workload injection must be enabled. `grpc-agent` requires an xDS-enabled gRPC application; the supplied image is retained. Port 9000 serves plaintext gRPC; port 9443 is not used by this route.
-
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
