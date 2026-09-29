@@ -41,7 +41,7 @@ def outgoing(namespace, imported=True, passthrough=False):
     unknown = (f"api.{namespace}: not imported",
                f"ALLOW_ANY → {service_ip}" if passthrough else "REGISTRY_ONLY → 503")
     return Case("shop/client · app=client",
-                (f"curl http://api.{namespace}/orders", f"DNS → {service_ip}"),
+                (f"curl http://api.{namespace}/orders",),
                 known if imported else unknown, imported or passthrough,
                 "HTTP" if passthrough else "mTLS", f"{namespace}/api")
 

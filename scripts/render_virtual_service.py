@@ -61,12 +61,13 @@ GROUPS = [
 ]
 
 
-def render(slug, settings, cases):
+def render(slug, settings, cases, show_dns=False):
     height = max(160, 85 + 31 * len(settings))
     top = height + 85
     c = Canvas((1800, top + len(cases) * 230 + 10))
-    c.card(60, 25, 610, 130, "DNS", ["wp.pl → 198.51.100.10"], "dns")
-    c.card(780, 25, 970, height, "Routing", settings, "neutral")
+    if show_dns:
+        c.card(60, 25, 610, 130, "DNS", ["wp.pl → 198.51.100.10"], "dns")
+    c.card(780 if show_dns else 415, 25, 970, height, "Routing", settings, "neutral")
     for i, item in enumerate(cases):
         y = top + i * 230
         c.box(35, y, 1210, 210, "white", BORDER)
@@ -117,7 +118,7 @@ def main():
         text = yaml.safe_dump_all(objects, sort_keys=False).rstrip()
         parts.extend([f"#### {title}", "```yaml\n" + text + "\n```",
                       f"![{title}](images/virtual-service/{slug}.png)"])
-        write_image(slug, render(slug, settings, cases), args.check)
+        write_image(slug, render(slug, settings, cases, any(obj["kind"] == "ServiceEntry" for obj in objects)), args.check)
 
     section("host", "Host + subsets", [read("wp.yaml"), dr],
             ["ServiceEntry: wp.pl", "VirtualService routes to playground-trouble", "DestinationRule subsets: scenarios / connections", "No subset → default outlier policy"],
