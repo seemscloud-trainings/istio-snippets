@@ -1,0 +1,34 @@
+# Apply one peer-authorization example at a time; no other matching policies.
+# Existing shop/api (app=api): HTTP Service port 80 -> Pod port 8080; returns 200.
+# Mesh trust domain: cluster.local. Injected clients use automatic Istio mTLS.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: api-mtls
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-access
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/shop/sa/reader
+      to:
+        - operation:
+            methods: [GET]
+            paths: [/orders]

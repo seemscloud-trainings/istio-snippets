@@ -1,0 +1,31 @@
+# Alternative to validate-only.yaml; existing shop/api returns 200 /orders.
+# Replace issuer/JWKS with your IdP; $VALID matches issuer/audience and is unexpired.
+# $INVALID has an invalid signature.
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: api-jwt
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  jwtRules:
+    - issuer: https://issuer.example.test/
+      audiences: [shop-api]
+      jwksUri: https://issuer.example.test/.well-known/jwks.json
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-jwt-access
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            requestPrincipals: ["*"]

@@ -1,0 +1,42 @@
+# Alternative example; existing shop/api returns 200 /orders and /healthz.
+# Replace issuer/JWKS; valid $ADMIN has role=admin, valid $USER has role=user.
+# /healthz permits missing JWT; an invalid supplied JWT is still rejected.
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: api-jwt
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  jwtRules:
+    - issuer: https://issuer.example.test/
+      audiences: [shop-api]
+      jwksUri: https://issuer.example.test/.well-known/jwks.json
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-jwt-access
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  action: ALLOW
+  rules:
+    - to:
+        - operation:
+            methods: [GET]
+            paths: [/healthz]
+    - from:
+        - source:
+            requestPrincipals: ["*"]
+      to:
+        - operation:
+            methods: [GET]
+            paths: [/orders]
+      when:
+        - key: request.auth.claims[role]
+          values: [admin]

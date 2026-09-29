@@ -1,0 +1,18 @@
+# Alternative to local-only.yaml. Sidecar scopes configuration, not network security.
+# Existing api.payments accepts plaintext HTTP; no destination authorization policy.
+# Client: shop/client, app=client. Client/API sidecars injected; APIs return 200 /orders.
+apiVersion: networking.istio.io/v1
+kind: Sidecar
+metadata:
+  name: client-egress
+  namespace: shop
+spec:
+  workloadSelector:
+    labels:
+      app: client
+  outboundTrafficPolicy:
+    mode: ALLOW_ANY
+  egress:
+    - hosts:
+        - "./*"
+        - "istio-system/*"

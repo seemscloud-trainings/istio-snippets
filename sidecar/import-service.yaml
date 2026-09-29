@@ -1,0 +1,18 @@
+# Alternative to local-only.yaml; existing Services are exported to shop.
+# Client: shop/client, app=client. Client/API sidecars injected; APIs return 200 /orders.
+apiVersion: networking.istio.io/v1
+kind: Sidecar
+metadata:
+  name: client-egress
+  namespace: shop
+spec:
+  workloadSelector:
+    labels:
+      app: client
+  outboundTrafficPolicy:
+    mode: REGISTRY_ONLY
+  egress:
+    - hosts:
+        - "./*"
+        - "istio-system/*"
+        - "payments/api.payments.svc.cluster.local"

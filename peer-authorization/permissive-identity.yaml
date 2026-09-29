@@ -1,0 +1,33 @@
+# Alternative to strict-reader.yaml; existing shop/api returns 200 /orders.
+# Plaintext passes PeerAuthentication but carries no authenticated ServiceAccount.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: api-mtls
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  mtls:
+    mode: PERMISSIVE
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-access
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/shop/sa/reader
+      to:
+        - operation:
+            methods: [GET]
+            paths: [/orders]

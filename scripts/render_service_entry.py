@@ -59,14 +59,15 @@ def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
 
 
 class Canvas:
-    def __init__(self) -> None:
-        self.image = Image.new("RGB", tuple(v * SCALE for v in SIZE), "white")
+    def __init__(self, size=SIZE) -> None:
+        self.size = size
+        self.image = Image.new("RGB", tuple(v * SCALE for v in size), "white")
         self.draw = ImageDraw.Draw(self.image)
 
     def text(self, x, y, value, size=23, color=INK, bold=False):
         bounds = self.draw.textbbox((x * SCALE, y * SCALE), value,
                                     font=font(size, bold), anchor="lt")
-        if bounds[2] > SIZE[0] * SCALE or bounds[3] > SIZE[1] * SCALE:
+        if bounds[2] > self.size[0] * SCALE or bounds[3] > self.size[1] * SCALE:
             raise ValueError(f"Text exceeds image bounds: {value}")
         self.draw.text((x * SCALE, y * SCALE), value,
                        font=font(size, bold), fill=color, anchor="lt")

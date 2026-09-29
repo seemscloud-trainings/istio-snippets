@@ -1,0 +1,49 @@
+# Alternative example; existing shop/api returns 200 for GET/POST /orders and /admin.
+# DENY is evaluated before ALLOW. Workload port is 8080 (Service port is 80).
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: api-mtls
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-access
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: [cluster.local/ns/shop/sa/reader]
+      to:
+        - operation:
+            methods: [GET, POST]
+            paths: [/orders, /admin]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-deny-admin-write
+  namespace: shop
+spec:
+  selector:
+    matchLabels:
+      app: api
+  action: DENY
+  rules:
+    - to:
+        - operation:
+            ports: ["8080"]
+            methods: [POST]
+            paths: [/admin]
