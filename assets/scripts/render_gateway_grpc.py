@@ -68,7 +68,7 @@ def main():
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
     output = ASSETS / 'images/gateway-grpc/flow.png'
-    page = ROOT / "docs/components" / 'GATEWAY-GRPC.md'
+    page = ROOT / "docs/configurations" / 'GATEWAY-GRPC.md'
     picture = render()
     if args.check:
         with Image.open(output) as old:

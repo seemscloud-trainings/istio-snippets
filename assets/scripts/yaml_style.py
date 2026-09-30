@@ -5,7 +5,9 @@ import yaml
 
 class SnippetDumper(yaml.SafeDumper):
     def represent_sequence(self, tag, sequence, flow_style=None):
-        scalar_items = all(not isinstance(item, (dict, list, tuple)) for item in sequence)
+        scalar_items = all(not isinstance(item, (dict, list, tuple))
+                           and not (isinstance(item, str) and "\n" in item)
+                           for item in sequence)
         return super().represent_sequence(tag, sequence, flow_style=scalar_items)
 
 
