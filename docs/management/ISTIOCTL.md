@@ -1,10 +1,6 @@
 ## Pod + Envoy
 
 ```bash
-# Namespace + Pod
-export NS="${POD_NAMESPACE%-istio-gateway}-istio-enabled"
-export POD=app-test-REPLACE-ME
-
 # Versions · client + Istiod blue
 istioctl version --revision blue
 
@@ -12,35 +8,34 @@ istioctl version --revision blue
 istioctl proxy-status --revision blue
 
 # Full Envoy config · JSON
-istioctl proxy-config all "$POD" -n "$NS" -o json
+istioctl proxy-config all pod-0 -o json -n ns
 
 # Analyze · YAML errors
 istioctl analyze --use-kube=false gateway.yaml virtualservice.yaml
 
 # Gateway collisions · live
-istioctl analyze -n "$NS" --revision blue --remote-contexts workshop \
-  --analyzer gateway.ConflictingGatewayAnalyzer
+istioctl analyze --revision blue --remote-contexts workshop --analyzer gateway.ConflictingGatewayAnalyzer -n ns
 
 # Listeners · ports + protocols
-istioctl proxy-config listeners "$POD" -n "$NS"
+istioctl proxy-config listeners pod-0 -n ns
 
 # Routes · hosts + paths + destinations
-istioctl proxy-config routes "$POD" -n "$NS" -o json
+istioctl proxy-config routes pod-0 -o json -n ns
 
 # Clusters · upstreams + subsets
-istioctl proxy-config clusters "$POD" -n "$NS"
+istioctl proxy-config clusters pod-0 -n ns
 
 # Endpoints · IP + port + health
-istioctl proxy-config endpoints "$POD" -n "$NS"
+istioctl proxy-config endpoints pod-0 -n ns
 
 # Certificates · status + expiry
-istioctl proxy-config secret "$POD" -n "$NS"
+istioctl proxy-config secret pod-0 -n ns
 
 # Bootstrap · proxy startup config
-istioctl proxy-config bootstrap "$POD" -n "$NS" -o json
+istioctl proxy-config bootstrap pod-0 -o json -n ns
 
 # Pod · routes + policies
-istioctl experimental describe pod "$POD" -n "$NS"
+istioctl experimental describe pod pod-0 -n ns
 
 # Istiod green · xDS sync
 istioctl proxy-status --revision green
@@ -66,19 +61,19 @@ istioctl experimental internal-debug registryz --revision blue
 istioctl experimental internal-debug endpointz --revision blue
 
 # Injection · selected webhook and revision
-istioctl experimental check-inject deployment/app-test -n "$NS"
+istioctl experimental check-inject deployment/app-test -n ns
 
 # Revision tags · tag → control plane
 istioctl tag list
 
 # Authorization · policies loaded into Envoy
-istioctl experimental authz check "$POD" -n "$NS"
+istioctl experimental authz check pod-0 -n ns
 
 # Upstream failures · timeouts, retries, connection errors
-istioctl experimental envoy-stats "$POD" -n "$NS" --type clusters
+istioctl experimental envoy-stats pod-0 --type clusters -n ns
 
 # Envoy counters · Prometheus format
-istioctl experimental envoy-stats "$POD" -n "$NS" -o prom
+istioctl experimental envoy-stats pod-0 -o prom -n ns
 ```
 
 ## East-west + multicluster
@@ -92,90 +87,68 @@ istioctl remote-clusters --revision green
 istioctl experimental internal-debug networkz --revision blue
 
 # Source proxy · cluster ID, network and locality
-istioctl proxy-config bootstrap "$POD" -n "$NS" -o json
-
-# Destination service
-export SERVICE="app-test.${NS}.svc.cluster.local"
-export SERVICE_PORT=80
+istioctl proxy-config bootstrap pod-0 -o json -n ns
 
 # Upstream · TLS transport and service configuration
-istioctl proxy-config clusters "$POD" -n "$NS" \
-  --fqdn "$SERVICE" --port "$SERVICE_PORT" -o json
+istioctl proxy-config clusters pod-0 --fqdn app-test.ns.svc.cluster.local --port 80 -o json -n ns
 
 # Service endpoints · local Pods and remote gateway IPs
-istioctl proxy-config endpoints "$POD" -n "$NS" \
-  --cluster "outbound|${SERVICE_PORT}||${SERVICE}" -o json
+istioctl proxy-config endpoints pod-0 --cluster "outbound|80||app-test.ns.svc.cluster.local" -o json -n ns
 
 # Different networks · remote gateway endpoints on 15443
-istioctl proxy-config endpoints "$POD" -n "$NS" --port 15443
+istioctl proxy-config endpoints pod-0 --port 15443 -n ns
 
 # Unhealthy endpoints · rejected upstreams
-istioctl proxy-config endpoints "$POD" -n "$NS" --status unhealthy
+istioctl proxy-config endpoints pod-0 --status unhealthy -n ns
 
 # Two Pods in one cluster · matching root CA
-export PEER_POD=REPLACE-WITH-PEER-POD
-export PEER_NS="$NS"
-istioctl proxy-config rootca-compare "$POD.$NS" "$PEER_POD.$PEER_NS"
+istioctl proxy-config rootca-compare pod-0.ns pod-1.ns
 ```
 
 ## Admin kubeconfig · cluster checks
 
 ```bash
-# Admin context + east-west Pod
-export KUBECONFIG=/path/to/admin-kubeconfig
-export CTX_A=gke_prod-common-apps_europe-west1_karakoram
-export CTX_B=gke_prod-common-apps_europe-west1_himalaya
-export EASTWEST_NS=istio-system
-export EASTWEST_POD=REPLACE-WITH-EASTWEST-POD
-
 # Multicluster · discovery from both clusters
-istioctl --context "$CTX_A" remote-clusters --revision blue
-istioctl --context "$CTX_B" remote-clusters --revision blue
+istioctl --context cluster-1 remote-clusters --revision blue
+istioctl --context cluster-2 remote-clusters --revision blue
 
 # East-west listener · SNI and TLS on 15443
-istioctl --context "$CTX_A" proxy-config listeners "$EASTWEST_POD" \
-  -n "$EASTWEST_NS" --port 15443 -o json
+istioctl --context cluster-1 proxy-config listeners gateway-eastwest-0 --port 15443 -o json -n istio-gateway-system
 
 # East-west upstreams · SNI-based service clusters
-istioctl --context "$CTX_A" proxy-config clusters "$EASTWEST_POD" \
-  -n "$EASTWEST_NS" -o json
+istioctl --context cluster-1 proxy-config clusters gateway-eastwest-0 -o json -n istio-gateway-system
 
 # East-west certificates · validity and trust chain
-istioctl --context "$CTX_A" proxy-config secret "$EASTWEST_POD" \
-  -n "$EASTWEST_NS"
+istioctl --context cluster-1 proxy-config secret gateway-eastwest-0 -n istio-gateway-system
 
 # Entire cluster · invalid and conflicting configuration
-istioctl --context "$CTX_A" analyze --all-namespaces --revision blue
-istioctl --context "$CTX_A" analyze --all-namespaces --revision green
+istioctl --context cluster-1 analyze --all-namespaces --revision blue
+istioctl --context cluster-1 analyze --all-namespaces --revision green
 
 # Multicluster analysis · both contexts
-istioctl --context "$CTX_A" analyze --all-namespaces \
-  --revision blue --remote-contexts "$CTX_B"
+istioctl --context cluster-1 analyze --all-namespaces --revision blue --remote-contexts cluster-2
 
 # TLS Secrets · references and certificates
-istioctl --context "$CTX_A" analyze --all-namespaces --revision blue \
-  --remote-contexts "$CTX_A" \
-  --analyzer gateway.SecretAnalyzer \
-  --analyzer gateway.CertificateAnalyzer
+istioctl --context cluster-1 analyze --all-namespaces --revision blue --remote-contexts cluster-1 --analyzer gateway.SecretAnalyzer --analyzer gateway.CertificateAnalyzer
 ```
 
 ## Upgrade · istioctl from the target release
 
 ```bash
 # Precheck · cluster prerequisites
-istioctl --context "$CTX_A" experimental precheck
+istioctl --context cluster-1 experimental precheck
 
 # Upgrade 1.29 → 1.30 · compatibility changes
-istioctl --context "$CTX_A" experimental precheck --from-version 1.29
+istioctl --context cluster-1 experimental precheck --from-version 1.29
 
 # Installed versions · old and new control plane
-istioctl --context "$CTX_A" version --revision blue
-istioctl --context "$CTX_A" version --revision green
+istioctl --context cluster-1 version --revision blue
+istioctl --context cluster-1 version --revision green
 
 # Injection versions · namespace vs running Pods
-istioctl --context "$CTX_A" experimental injector list
+istioctl --context cluster-1 experimental injector list
 
 # Canary control plane · connected proxies after migration
-istioctl --context "$CTX_A" proxy-status --revision blue --verbosity 1
-istioctl --context "$CTX_A" proxy-status --revision green --verbosity 1
+istioctl --context cluster-1 proxy-status --revision blue --verbosity 1
+istioctl --context cluster-1 proxy-status --revision green --verbosity 1
 ```
