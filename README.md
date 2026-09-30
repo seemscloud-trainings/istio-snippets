@@ -15,6 +15,8 @@
 - [Gateway gRPC](docs/configurations/GATEWAY-GRPC.md)
 - [CronJob](docs/configurations/CRONJOB.md)
 
+- [Analyze errors](docs/configurations/ANALYZE-ERRORS.md)
+
 # Management
 
 - [istioctl](docs/management/ISTIOCTL.md)

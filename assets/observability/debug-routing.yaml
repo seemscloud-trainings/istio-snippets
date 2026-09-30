@@ -1,0 +1,42 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: debug-duplicate-certificate
+spec:
+  selector:
+    istio: gateway-nimbus-blue
+  servers:
+  - port:
+      number: 443
+      name: https-debug
+      protocol: HTTPS
+    hosts: [debug.wp.pl]
+    tls:
+      mode: SIMPLE
+      credentialName: istio-gateway-wildcard
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: debug-missing-gateway
+spec:
+  hosts: [debug.wp.pl]
+  gateways: [debug-gateway-does-not-exist]
+  exportTo: [.]
+  http:
+  - route:
+    - destination:
+        host: debug-backend.wp.pl
+        port:
+          number: 443
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: debug-tls-without-ca
+spec:
+  host: debug-backend.wp.pl
+  exportTo: [.]
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
