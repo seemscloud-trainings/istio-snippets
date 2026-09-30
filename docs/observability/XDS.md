@@ -1,5 +1,7 @@
 # Xds — Nimbus observability labs
 
+(https://jimmysong.io/blog/envoy-archiecture-and-terminology/)[safdasdfafds]
+
 ## Churn
 
 **Metric:** `pilot_push_triggers`.
