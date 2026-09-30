@@ -59,9 +59,8 @@ spec:
       annotations:
         sidecar.istio.io/inject: 'true'
         sidecar.istio.io/nativeSidecar: 'true'
-        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*",
-          ".*upstream_cx_.*", ".*cds_update_.*", ".*lds_update_.*", ".*listener_manager.*",
-          ".*cluster_manager.*"]}}'
+        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*", ".*upstream_cx_.*", ".*cds_update_.*",
+          ".*lds_update_.*", ".*listener_manager.*", ".*cluster_manager.*"]}}'
     spec:
       restartPolicy: Never
       securityContext:
@@ -76,15 +75,27 @@ spec:
         - python
         - -u
         - -c
-        - "import time,os,threading,urllib.request,urllib.error,collections\nfrom\
-          \ concurrent.futures import ThreadPoolExecutor\n# Wait for deployment and\
-          \ xDS propagation; no human request loop needed.\ntime.sleep(30)\nend=time.monotonic()+180;counts=collections.Counter();lock=threading.Lock()\n\
-          def worker(_):\n while time.monotonic()<end:\n  try:\n   r=urllib.request.urlopen(urllib.request.Request(os.environ[\"\
-          URL\"],headers={\"Host\":\"obs.nimbus.test\"}),timeout=5);r.read();code=r.status\n\
-          \  except urllib.error.HTTPError as e:code=e.code;e.read()\n  except Exception\
-          \ as e:code=type(e).__name__\n  with lock:counts[str(code)]+=1\n  time.sleep(.05)\n\
-          with ThreadPoolExecutor(max_workers=20) as pool:list(pool.map(worker,range(20)))\n\
-          print(dict(counts),flush=True)\n"
+        - |
+          import time,os,threading,urllib.request,urllib.error,collections
+          from concurrent.futures import ThreadPoolExecutor
+          time.sleep(30)
+          end=time.monotonic()+180;counts=collections.Counter();lock=threading.Lock()
+          def worker(_):
+           while time.monotonic()<end:
+            headers={"Host":os.environ["HOST"]} if os.getenv("HOST") else {}
+            try:
+             with urllib.request.urlopen(urllib.request.Request(os.environ["URL"],headers=headers),timeout=5) as r:r.read();code=r.status
+            except urllib.error.HTTPError as e:code=e.code;e.read();e.close()
+            except Exception as e:code=type(e).__name__
+            with lock:counts[str(code)]+=1
+            time.sleep(.05)
+          def report():
+           while time.monotonic()<end:
+            time.sleep(15)
+            with lock:print(dict(counts),flush=True)
+          threading.Thread(target=report,daemon=True).start()
+          with ThreadPoolExecutor(max_workers=20) as pool:list(pool.map(worker,range(20)))
+          print("FINAL",dict(counts),flush=True)
         env:
         - name: URL
           value: http://obs-empty.playground-nimbus-istio-enabled.svc.cluster.local

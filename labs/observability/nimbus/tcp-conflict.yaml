@@ -19,9 +19,8 @@ spec:
         istio.io/rev: blue
       annotations:
         sidecar.istio.io/inject: 'true'
-        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*",
-          ".*upstream_cx_.*", ".*cds_update_.*", ".*lds_update_.*", ".*listener_manager.*",
-          ".*cluster_manager.*"]}}'
+        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*", ".*upstream_cx_.*", ".*cds_update_.*",
+          ".*lds_update_.*", ".*listener_manager.*", ".*cluster_manager.*"]}}'
     spec:
       securityContext:
         runAsNonRoot: true
@@ -35,19 +34,28 @@ spec:
         - python
         - -u
         - -c
-        - "import os,time,socket,struct,threading\nfrom http.server import ThreadingHTTPServer,BaseHTTPRequestHandler\n\
-          mode=os.getenv(\"MODE\",\"healthy\")\nclass Handler(BaseHTTPRequestHandler):\n\
-          \ def do_GET(self):\n  if self.path==\"/ready\":\n   self.send_response(503\
-          \ if mode==\"unready\" or (mode==\"churn\" and int(time.time()/5)%2) else\
-          \ 200);self.end_headers();return\n  if mode==\"slow\":time.sleep(3)\n  if\
-          \ mode==\"reset\":\n   self.connection.setsockopt(socket.SOL_SOCKET,socket.SO_LINGER,struct.pack(\"\
-          ii\",1,0));self.connection.close();return\n  code=503 if mode==\"flaky\"\
-          \ and int(time.time()*1000)%3 else 200\n  self.send_response(code);self.end_headers()\n\
-          \  try:self.wfile.write(b\"observability lab\")\n  except (BrokenPipeError,ConnectionResetError):pass\n\
-          \ def log_message(self,*args):pass\nif mode==\"oom\":\n def allocate():\n\
-          \  time.sleep(20);data=[]\n  while True:data.append(bytearray(1024*1024));time.sleep(.02)\n\
-          \ threading.Thread(target=allocate,daemon=True).start()\nThreadingHTTPServer((\"\
-          0.0.0.0\",8080),Handler).serve_forever()\n"
+        - |
+          import os,time,socket,struct,threading
+          from http.server import ThreadingHTTPServer,BaseHTTPRequestHandler
+          mode=os.getenv("MODE","healthy")
+          class Handler(BaseHTTPRequestHandler):
+           def do_GET(self):
+            if self.path=="/ready":
+             self.send_response(503 if mode=="unready" or (mode=="churn" and int(time.time()/5)%2) else 200);self.end_headers();return
+            if mode=="slow":time.sleep(3)
+            if mode=="reset":
+             self.connection.setsockopt(socket.SOL_SOCKET,socket.SO_LINGER,struct.pack("ii",1,0));self.connection.close();return
+            code=503 if mode=="flaky" and int(time.time()*1000)%3 else 200
+            self.send_response(code);self.end_headers()
+            try:self.wfile.write(b"observability lab")
+            except (BrokenPipeError,ConnectionResetError):pass
+           def log_message(self,*args):pass
+          if mode=="oom":
+           def allocate():
+            time.sleep(20);data=[]
+            while True:data.append(bytearray(1024*1024));time.sleep(.02)
+           threading.Thread(target=allocate,daemon=True).start()
+          ThreadingHTTPServer(("0.0.0.0",8080),Handler).serve_forever()
         env:
         - name: MODE
           value: healthy
@@ -134,9 +142,8 @@ spec:
       annotations:
         sidecar.istio.io/inject: 'true'
         sidecar.istio.io/nativeSidecar: 'true'
-        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*",
-          ".*upstream_cx_.*", ".*cds_update_.*", ".*lds_update_.*", ".*listener_manager.*",
-          ".*cluster_manager.*"]}}'
+        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*", ".*upstream_cx_.*", ".*cds_update_.*",
+          ".*lds_update_.*", ".*listener_manager.*", ".*cluster_manager.*"]}}'
     spec:
       restartPolicy: Never
       securityContext:
@@ -151,15 +158,27 @@ spec:
         - python
         - -u
         - -c
-        - "import time,os,threading,urllib.request,urllib.error,collections\nfrom\
-          \ concurrent.futures import ThreadPoolExecutor\n# Wait for deployment and\
-          \ xDS propagation; no human request loop needed.\ntime.sleep(30)\nend=time.monotonic()+180;counts=collections.Counter();lock=threading.Lock()\n\
-          def worker(_):\n while time.monotonic()<end:\n  try:\n   r=urllib.request.urlopen(urllib.request.Request(os.environ[\"\
-          URL\"],headers={\"Host\":\"obs.nimbus.test\"}),timeout=5);r.read();code=r.status\n\
-          \  except urllib.error.HTTPError as e:code=e.code;e.read()\n  except Exception\
-          \ as e:code=type(e).__name__\n  with lock:counts[str(code)]+=1\n  time.sleep(.05)\n\
-          with ThreadPoolExecutor(max_workers=20) as pool:list(pool.map(worker,range(20)))\n\
-          print(dict(counts),flush=True)\n"
+        - |
+          import time,os,threading,urllib.request,urllib.error,collections
+          from concurrent.futures import ThreadPoolExecutor
+          time.sleep(30)
+          end=time.monotonic()+180;counts=collections.Counter();lock=threading.Lock()
+          def worker(_):
+           while time.monotonic()<end:
+            headers={"Host":os.environ["HOST"]} if os.getenv("HOST") else {}
+            try:
+             with urllib.request.urlopen(urllib.request.Request(os.environ["URL"],headers=headers),timeout=5) as r:r.read();code=r.status
+            except urllib.error.HTTPError as e:code=e.code;e.read();e.close()
+            except Exception as e:code=type(e).__name__
+            with lock:counts[str(code)]+=1
+            time.sleep(.05)
+          def report():
+           while time.monotonic()<end:
+            time.sleep(15)
+            with lock:print(dict(counts),flush=True)
+          threading.Thread(target=report,daemon=True).start()
+          with ThreadPoolExecutor(max_workers=20) as pool:list(pool.map(worker,range(20)))
+          print("FINAL",dict(counts),flush=True)
         env:
         - name: URL
           value: http://obs-tcp-conflict.playground-nimbus-istio-enabled.svc.cluster.local
