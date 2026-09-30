@@ -1,0 +1,49 @@
+static_resources:
+  #
+  #    LDS - listeners
+  #
+  listeners:
+    # ... listener i filtry z poprzedniego przykładu
+    # RDS - route_config → virtual_hosts → routes
+
+  #
+  #    CDS - upstream clusters
+  #
+  clusters:
+  - name: backend
+    type: STATIC
+    connect_timeout: 1s
+    lb_policy: ROUND_ROBIN
+
+    #
+    #    EDS equivalent - endpoints for backend
+    #    Inline configuration, not fetched through EDS
+    #
+    load_assignment:
+      cluster_name: backend
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.1.20
+                port_value: 8080
+
+  - name: canary
+    type: STATIC
+    connect_timeout: 1s
+    lb_policy: ROUND_ROBIN
+
+    #
+    #    EDS equivalent - endpoints for canary
+    #    Inline configuration, not fetched through EDS
+    #
+    load_assignment:
+      cluster_name: canary
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.1.30
+                port_value: 8080
