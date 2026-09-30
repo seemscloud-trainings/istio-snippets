@@ -1,0 +1,26 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-istio-export-all
+spec:
+  background: true
+  rules:
+  - name: deny-export-wildcard
+    match:
+      any:
+      - resources:
+          kinds:
+          - networking.istio.io/*/VirtualService
+          - networking.istio.io/*/DestinationRule
+          - networking.istio.io/*/ServiceEntry
+          operations: [CREATE, UPDATE]
+    validate:
+      failureAction: Enforce
+      allowExistingViolations: false
+      message: 'exportTo must not contain "*". Use "." or explicit namespaces.'
+      deny:
+        conditions:
+          all:
+          - key: "{{ contains(request.object.spec.exportTo || `[]`, '*') }}"
+            operator: Equals
+            value: true

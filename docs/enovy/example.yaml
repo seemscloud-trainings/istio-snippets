@@ -1,0 +1,89 @@
+static_resources:
+  listeners:
+  - name: http
+    address:
+      socket_address:
+        address: 192.168.1.10
+        port_value: 80
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: http
+          route_config:
+            name: routes
+            virtual_hosts:
+            - name: wp
+              domains: [wp.pl, "wp.pl:80"]
+              routes:
+              - name: orders-canary
+                match:
+                  path: /api/orders
+                  headers:
+                  - name: x-version
+                    string_match:
+                      exact: canary
+                route:
+                  cluster: canary
+                  timeout: 5s
+
+              - name: orders-default
+                match:
+                  path: /api/orders
+                route:
+                  cluster: backend
+                  timeout: 5s
+
+              - name: admin
+                match:
+                  prefix: /admin/
+                  headers:
+                  - name: x-environment
+                    string_match:
+                      exact: test
+                route:
+                  cluster: canary
+                  timeout: 5s
+
+              - name: fallback
+                match:
+                  prefix: /
+                direct_response:
+                  status: 404
+                  body:
+                    inline_string: "No matching route\n"
+
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+  - name: backend
+    type: STATIC
+    connect_timeout: 1s
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: backend
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.1.20
+                port_value: 8080
+
+  - name: canary
+    type: STATIC
+    connect_timeout: 1s
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: canary
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 192.168.1.30
+                port_value: 8080
