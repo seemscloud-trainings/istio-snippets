@@ -9,8 +9,9 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED, BORDER
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
-VM = ROOT / "vm-workloads"
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
+VM = ASSETS / "vm-workloads"
 
 
 def render(manual):
@@ -95,9 +96,9 @@ export ISTIO_REVISION=green
 export VM_USER=ubuntu
 istioctl version --remote=false"""),
         code("yaml", dump_documents(yaml.safe_load_all((VM / "workload-group.yaml").read_text()))),
-        "![WorkloadGroup: one service, three VM instances](../../images/vm-workloads/workload-group.png)",
+        "![WorkloadGroup: one service, three VM instances](../../assets/images/vm-workloads/workload-group.png)",
         '#### Register + bootstrap',
-        code("bash", "kubectl apply -f vm-workloads/workload-group.yaml"),
+        code("bash", "kubectl apply -f assets/vm-workloads/workload-group.yaml"),
         code("bash", script("group-bootstrap.sh")),
         '#### Generated files\n\n```text\ncluster.env   → /var/lib/istio/envoy/cluster.env\nmesh.yaml     → /etc/istio/config/mesh\nroot-cert.pem → /etc/certs/root-cert.pem\nistio-token   → /var/lib/istio/istio-token\n              → /var/run/secrets/tokens/istio-token\nhosts         → /etc/hosts\n```',
         '#### Copy',
@@ -106,7 +107,7 @@ istioctl version --remote=false"""),
   vm_ip="${item#*:}"
   ssh "$VM_USER@$vm_ip" 'mkdir -p "$HOME/istio-bootstrap"; chmod 700 "$HOME/istio-bootstrap"'
   scp ".local/vm-group/$vm_name/"{cluster.env,mesh.yaml,root-cert.pem,istio-token,hosts} \\
-    vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
+    assets/vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
 done"""),
         '#### On each VM',
         code("bash", """export ISTIO_VERSION=1.30.5
@@ -123,9 +124,9 @@ kubectl exec vm-client -c vm-client -- curl -sS http://wp.pl"""),
         code("bash", "kubectl create token shared-app --audience=istio-ca --duration=1h > .local/vm-group/vm1/istio-token"),
         "## 2. WorkloadEntry — three applications on three VMs",
         code("yaml", dump_documents(yaml.safe_load_all((VM / "workload-entry.yaml").read_text()))),
-        "![WorkloadEntry: three separate VM services](../../images/vm-workloads/workload-entry.png)",
+        "![WorkloadEntry: three separate VM services](../../assets/images/vm-workloads/workload-entry.png)",
         '#### Register + bootstrap',
-        code("bash", "kubectl apply -f vm-workloads/workload-entry.yaml"),
+        code("bash", "kubectl apply -f assets/vm-workloads/workload-entry.yaml"),
         code("bash", script("entry-bootstrap.sh")),
         '#### Copy + install',
         code("bash", """for item in orders:10.20.0.21 payments:10.20.0.22 inventory:10.20.0.23; do
@@ -133,7 +134,7 @@ kubectl exec vm-client -c vm-client -- curl -sS http://wp.pl"""),
   vm_ip="${item#*:}"
   ssh "$VM_USER@$vm_ip" 'mkdir -p "$HOME/istio-bootstrap"; chmod 700 "$HOME/istio-bootstrap"'
   scp ".local/vm-entry/$app/"{cluster.env,mesh.yaml,root-cert.pem,istio-token,hosts} \\
-    vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
+    assets/vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
 done"""),
         code("bash", """export ISTIO_VERSION=1.30.5
 sudo env ISTIO_VERSION="$ISTIO_VERSION" bash "$HOME/istio-bootstrap/install-vm.sh" "$HOME/istio-bootstrap"
@@ -153,7 +154,7 @@ def main():
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     for manual, name in ((False, "workload-group"), (True, "workload-entry")):
-        output = ROOT / "images/vm-workloads" / f"{name}.png"
+        output = ASSETS / "images/vm-workloads" / f"{name}.png"
         image = render(manual)
         if args.check:
             with Image.open(output) as old:

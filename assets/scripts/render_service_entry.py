@@ -13,7 +13,8 @@ from PIL import Image, ImageDraw, ImageFont
 import yaml
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
 SCALE = 2
 SIZE = (1640, 580)
 # Illustrative DNS answers from RFC 5737; never query live endpoints when rendering.
@@ -178,8 +179,8 @@ def documentation() -> str:
         relative = f"service-entry/{example.slug}.yaml"
         parts.extend([
             f"#### {example.title}",
-            "```yaml\n" + dump_documents(yaml.safe_load_all((ROOT / relative).read_text())).rstrip() + "\n```",
-            f"![{example.title}](../../images/service-entry/{example.slug}.png)",
+            "```yaml\n" + dump_documents(yaml.safe_load_all((ASSETS / relative).read_text())).rstrip() + "\n```",
+            f"![{example.title}](../../assets/images/service-entry/{example.slug}.png)",
         ])
     return "\n\n".join(parts) + "\n"
 
@@ -190,10 +191,10 @@ def main() -> None:
     args = parser.parse_args()
     stale = []
     for example in EXAMPLES:
-        manifest = ROOT / "service-entry" / f"{example.slug}.yaml"
+        manifest = ASSETS / "service-entry" / f"{example.slug}.yaml"
         resources = list(yaml.safe_load_all(manifest.read_text()))
         image = render(example, resources)
-        output = ROOT / "images" / "service-entry" / f"{example.slug}.png"
+        output = ASSETS / "images" / "service-entry" / f"{example.slug}.png"
         if args.check:
             if not output.is_file():
                 stale.append(str(output.relative_to(ROOT)))

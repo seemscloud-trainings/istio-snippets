@@ -13,7 +13,8 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED, BORDER
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
 RED = "#a34740"
 
 
@@ -207,10 +208,10 @@ def main():
     args = parser.parse_args()
     pages = {}
     for example in EXAMPLES:
-        manifest = ROOT / example.topic / f"{example.slug}.yaml"
+        manifest = ASSETS / example.topic / f"{example.slug}.yaml"
         source = manifest.read_text()
         resources = list(yaml.safe_load_all(source))
-        output = ROOT / "images" / example.topic / f"{example.slug}.png"
+        output = ASSETS / "images" / example.topic / f"{example.slug}.png"
         update_image(output, draw(example, resources), args.check)
         pages.setdefault(example.topic, []).extend([
             f"#### {example.title}", "```yaml\n" + dump_documents(resources).rstrip() + "\n```",

@@ -9,7 +9,7 @@ spec:
   concurrency: 2
 ```
 
-![Concurrency · ProxyConfig](../../images/proxy-config/concurrency.png)
+![Concurrency · ProxyConfig](../../assets/images/proxy-config/concurrency.png)
 
 #### Distroless · ProxyConfig
 
@@ -23,7 +23,7 @@ spec:
     imageType: distroless
 ```
 
-![Distroless · ProxyConfig](../../images/proxy-config/distroless.png)
+![Distroless · ProxyConfig](../../assets/images/proxy-config/distroless.png)
 
 #### DNS capture · ProxyConfig
 
@@ -52,7 +52,7 @@ spec:
     protocol: HTTP
 ```
 
-![DNS capture · ProxyConfig](../../images/proxy-config/dns-capture.png)
+![DNS capture · ProxyConfig](../../assets/images/proxy-config/dns-capture.png)
 
 #### Startup · Pod annotation
 
@@ -71,7 +71,7 @@ spec:
     command: [sh, -c, 'curl --fail --max-time 10 http://wp.pl; sleep 3600']
 ```
 
-![Startup · Pod annotation](../../images/proxy-config/startup.png)
+![Startup · Pod annotation](../../assets/images/proxy-config/startup.png)
 
 #### Shutdown · Pod annotation
 
@@ -94,7 +94,7 @@ spec:
     - containerPort: 8080
 ```
 
-![Shutdown · Pod annotation](../../images/proxy-config/shutdown.png)
+![Shutdown · Pod annotation](../../assets/images/proxy-config/shutdown.png)
 
 #### Metrics · Pod annotation
 
@@ -114,4 +114,4 @@ spec:
     command: [sh, -c, sleep 3600]
 ```
 
-![Metrics · Pod annotation](../../images/proxy-config/stats.png)
+![Metrics · Pod annotation](../../assets/images/proxy-config/stats.png)

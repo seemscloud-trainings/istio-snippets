@@ -10,8 +10,9 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED, BORDER
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
-MANIFESTS = ROOT / "virtual-service"
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
+MANIFESTS = ASSETS / "virtual-service"
 HOST = yaml.safe_load((MANIFESTS / "trouble.yaml").read_text())["spec"]["hosts"][0]
 
 
@@ -105,7 +106,7 @@ def read(name):
 
 
 def write_image(name, image, check):
-    path = ROOT / "images/virtual-service" / f"{name}.png"
+    path = ASSETS / "images/virtual-service" / f"{name}.png"
     if check:
         with Image.open(path) as old:
             if old.size != image.size or old.convert("RGB").tobytes() != image.tobytes():
@@ -126,7 +127,7 @@ def main():
     def section(slug, title, objects, settings, cases):
         text = dump_documents(objects).rstrip()
         parts.extend([f"#### {title}", "```yaml\n" + text + "\n```",
-                      f"![{title}](../../images/virtual-service/{slug}.png)"])
+                      f"![{title}](../../assets/images/virtual-service/{slug}.png)"])
         write_image(slug, render(slug, settings, cases), args.check)
 
     section("host", "Subsets", [dr],

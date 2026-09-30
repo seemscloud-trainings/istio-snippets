@@ -8,7 +8,8 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
 
 
 def render(resources):
@@ -57,8 +58,8 @@ def main():
     args = parser.parse_args()
     sections = []
     for color in ('blue',):
-        resources = list(yaml.safe_load_all((ROOT / 'gateway' / f'{color}.yaml').read_text()))
-        output = ROOT / 'images/gateway' / f'{color}.png'
+        resources = list(yaml.safe_load_all((ASSETS / 'gateway' / f'{color}.yaml').read_text()))
+        output = ASSETS / 'images/gateway' / f'{color}.png'
         picture = render(resources)
         if args.check:
             with Image.open(output) as existing:
@@ -69,7 +70,7 @@ def main():
         sections.extend([
             f'#### gateway-{color}',
             '```yaml\n' + dump_documents(resources).strip() + '\n```',
-            f'![Gateway {color} binding and request flow](../../images/gateway/{color}.png)',
+            f'![Gateway {color} binding and request flow](../../assets/images/gateway/{color}.png)',
         ])
     content = '\n\n'.join(sections) + '\n'
     page = ROOT / "docs/components" / 'GATEWAY.md'

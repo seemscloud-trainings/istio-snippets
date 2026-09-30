@@ -8,7 +8,8 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
 
 
 def render():
@@ -41,16 +42,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    resource = yaml.safe_load((ROOT / 'cronjob/native-sidecar.yaml').read_text())
+    resource = yaml.safe_load((ASSETS / 'cronjob/native-sidecar.yaml').read_text())
     content = '\n\n'.join([
         '#### CronJob · native sidecar · Kubernetes 1.33+',
         '```yaml\n' + dump_documents([resource]).strip() + '\n```',
         '#### Istiod Helm · startup probe',
         '```yaml\nglobal:\n  proxy:\n    startupProbe:\n      enabled: true\n```',
-        '![CronJob: proxy readiness, successful completion and request failure](../../images/cronjob/native-sidecar.png)',
+        '![CronJob: proxy readiness, successful completion and request failure](../../assets/images/cronjob/native-sidecar.png)',
     ]) + '\n'
     page = ROOT / "docs/components" / 'CRONJOB.md'
-    output = ROOT / 'images/cronjob/native-sidecar.png'
+    output = ASSETS / 'images/cronjob/native-sidecar.png'
     picture = render()
     if args.check:
         assert page.read_text() == content

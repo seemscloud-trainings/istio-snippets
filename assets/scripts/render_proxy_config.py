@@ -10,7 +10,8 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED, BORDER
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
 EXAMPLES = (
     ("concurrency", "Concurrency · ProxyConfig"),
     ("distroless", "Distroless · ProxyConfig"),
@@ -152,10 +153,10 @@ def main():
     args = parser.parse_args()
     parts = []
     for slug, title in EXAMPLES:
-        source = ROOT / "proxy-config" / f"{slug}.yaml"
+        source = ASSETS / "proxy-config" / f"{slug}.yaml"
         documents = list(yaml.safe_load_all(source.read_text()))
         image = render(slug, documents)
-        output = ROOT / "images/proxy-config" / f"{slug}.png"
+        output = ASSETS / "images/proxy-config" / f"{slug}.png"
         if args.check:
             with Image.open(output) as old:
                 if old.size != image.size or old.convert("RGB").tobytes() != image.tobytes():

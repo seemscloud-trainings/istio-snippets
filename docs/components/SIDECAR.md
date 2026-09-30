@@ -12,7 +12,7 @@ spec:
   - hosts: [./*, istio-system/*]
 ```
 
-![Local namespace](../../images/sidecar/local-only.png)
+![Local namespace](../../assets/images/sidecar/local-only.png)
 
 #### One remote service
 
@@ -28,7 +28,7 @@ spec:
   - hosts: [./*, istio-system/*, payments/api.payments.svc.cluster.local]
 ```
 
-![One remote service](../../images/sidecar/import-service.png)
+![One remote service](../../assets/images/sidecar/import-service.png)
 
 #### ALLOW_ANY
 
@@ -44,4 +44,4 @@ spec:
   - hosts: [./*, istio-system/*]
 ```
 
-![ALLOW_ANY](../../images/sidecar/allow-any.png)
+![ALLOW_ANY](../../assets/images/sidecar/allow-any.png)

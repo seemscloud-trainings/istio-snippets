@@ -12,7 +12,7 @@ spec:
     jwksUri: https://wp.pl/.well-known/jwks.json
 ```
 
-![JWT validation](../../images/request-authorization/validate-only.png)
+![JWT validation](../../assets/images/request-authorization/validate-only.png)
 
 #### Required JWT
 
@@ -39,7 +39,7 @@ spec:
         requestPrincipals: ['*']
 ```
 
-![Required JWT](../../images/request-authorization/require-token.png)
+![Required JWT](../../assets/images/request-authorization/require-token.png)
 
 #### JWT role + /healthz
 
@@ -77,4 +77,4 @@ spec:
       values: [admin]
 ```
 
-![JWT role + /healthz](../../images/request-authorization/admin-and-health.png)
+![JWT role + /healthz](../../assets/images/request-authorization/admin-and-health.png)

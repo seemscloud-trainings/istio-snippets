@@ -8,7 +8,8 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
 
 
 def render():
@@ -50,12 +51,12 @@ def render():
 def docs():
     sections = ['#### gRPC']
     for name in ('app', 'gateway'):
-        resources = yaml.safe_load_all((ROOT / 'gateway-grpc' / f'{name}.yaml').read_text())
+        resources = yaml.safe_load_all((ASSETS / 'gateway-grpc' / f'{name}.yaml').read_text())
         sections.append('```yaml\n' + dump_documents(resources).strip() + '\n```')
     sections.extend([
-        '![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](../../images/gateway-grpc/flow.png)',
+        '![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](../../assets/images/gateway-grpc/flow.png)',
         '#### TLS Secret',
-        '```bash\nkubectl create secret tls grpc-end-gw-tls --cert=wp.pl.crt --key=wp.pl.key --dry-run=client -o yaml | kubectl apply -f -\nkubectl apply -f gateway-grpc/app.yaml -f gateway-grpc/gateway.yaml\n```',
+        '```bash\nkubectl create secret tls grpc-end-gw-tls --cert=wp.pl.crt --key=wp.pl.key --dry-run=client -o yaml | kubectl apply -f -\nkubectl apply -f assets/gateway-grpc/app.yaml -f assets/gateway-grpc/gateway.yaml\n```',
         '#### Request',
         '```bash\ngrpcurl -cacert ca.crt -authority wp.pl gateway-green:443 list\n```',
     ])
@@ -66,7 +67,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    output = ROOT / 'images/gateway-grpc/flow.png'
+    output = ASSETS / 'images/gateway-grpc/flow.png'
     page = ROOT / "docs/components" / 'GATEWAY-GRPC.md'
     picture = render()
     if args.check:

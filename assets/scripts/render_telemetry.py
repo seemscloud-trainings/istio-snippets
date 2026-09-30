@@ -8,7 +8,8 @@ import yaml
 from render_service_entry import Canvas, BLUE, GREEN, MUTED
 from yaml_style import dump_documents
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+ASSETS = ROOT / "assets"
 
 
 def render(resource):
@@ -54,14 +55,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    resource = yaml.safe_load((ROOT / 'telemetry/default.yaml').read_text())
+    resource = yaml.safe_load((ASSETS / 'telemetry/default.yaml').read_text())
     content = '\n\n'.join([
         '#### Access logs + metrics + tracing',
         '```yaml\n' + dump_documents([resource]).strip() + '\n```',
-        '![Telemetry: error logs, request counters and trace sampling](../../images/telemetry/default.png)',
+        '![Telemetry: error logs, request counters and trace sampling](../../assets/images/telemetry/default.png)',
     ]) + '\n'
     page = ROOT / "docs/components" / 'TELEMETRY.md'
-    output = ROOT / 'images/telemetry/default.png'
+    output = ASSETS / 'images/telemetry/default.png'
     picture = render(resource)
     if args.check:
         assert page.read_text() == content

@@ -16,7 +16,7 @@ spec:
   exportTo: [.]
 ```
 
-![Normal](../../images/service-entry/normal.png)
+![Normal](../../assets/images/service-entry/normal.png)
 
 #### Override Egress IP, not DNS IP
 
@@ -38,7 +38,7 @@ spec:
   exportTo: [.]
 ```
 
-![Override Egress IP, not DNS IP](../../images/service-entry/static-endpoint.png)
+![Override Egress IP, not DNS IP](../../assets/images/service-entry/static-endpoint.png)
 
 #### Original destination — resolution: NONE
 
@@ -59,7 +59,7 @@ spec:
   exportTo: [.]
 ```
 
-![Original destination — resolution: NONE](../../images/service-entry/original-destination.png)
+![Original destination — resolution: NONE](../../assets/images/service-entry/original-destination.png)
 
 #### DNS Resolution + Different Domain
 
@@ -81,7 +81,7 @@ spec:
   exportTo: [.]
 ```
 
-![DNS Resolution + Different Domain](../../images/service-entry/dns-endpoint.png)
+![DNS Resolution + Different Domain](../../assets/images/service-entry/dns-endpoint.png)
 
 #### Istio 80, egress 4433
 
@@ -116,4 +116,4 @@ spec:
   exportTo: [.]
 ```
 
-![Istio 80, egress 4433](../../images/service-entry/tls-origination.png)
+![Istio 80, egress 4433](../../assets/images/service-entry/tls-origination.png)

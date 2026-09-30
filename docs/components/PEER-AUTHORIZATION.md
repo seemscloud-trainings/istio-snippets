@@ -36,7 +36,7 @@ spec:
       mode: DISABLE
 ```
 
-![STRICT + ServiceAccount](../../images/peer-authorization/strict-reader.png)
+![STRICT + ServiceAccount](../../assets/images/peer-authorization/strict-reader.png)
 
 #### PERMISSIVE + ServiceAccount
 
@@ -76,7 +76,7 @@ spec:
       mode: DISABLE
 ```
 
-![PERMISSIVE + ServiceAccount](../../images/peer-authorization/permissive-identity.png)
+![PERMISSIVE + ServiceAccount](../../assets/images/peer-authorization/permissive-identity.png)
 
 #### DENY + ALLOW
 
@@ -118,4 +118,4 @@ spec:
         paths: [/admin]
 ```
 
-![DENY + ALLOW](../../images/peer-authorization/deny-admin-write.png)
+![DENY + ALLOW](../../assets/images/peer-authorization/deny-admin-write.png)

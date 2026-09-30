@@ -77,12 +77,12 @@ spec:
     ISTIO_META_DNS_CAPTURE: 'true'
 ```
 
-![WorkloadGroup: one service, three VM instances](../../images/vm-workloads/workload-group.png)
+![WorkloadGroup: one service, three VM instances](../../assets/images/vm-workloads/workload-group.png)
 
 #### Register + bootstrap
 
 ```bash
-kubectl apply -f vm-workloads/workload-group.yaml
+kubectl apply -f assets/vm-workloads/workload-group.yaml
 ```
 
 ```bash
@@ -123,7 +123,7 @@ for item in vm1:10.20.0.11 vm2:10.20.0.12 vm3:10.20.0.13; do
   vm_ip="${item#*:}"
   ssh "$VM_USER@$vm_ip" 'mkdir -p "$HOME/istio-bootstrap"; chmod 700 "$HOME/istio-bootstrap"'
   scp ".local/vm-group/$vm_name/"{cluster.env,mesh.yaml,root-cert.pem,istio-token,hosts} \
-    vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
+    assets/vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
 done
 ```
 
@@ -283,12 +283,12 @@ spec:
     ISTIO_META_DNS_CAPTURE: 'true'
 ```
 
-![WorkloadEntry: three separate VM services](../../images/vm-workloads/workload-entry.png)
+![WorkloadEntry: three separate VM services](../../assets/images/vm-workloads/workload-entry.png)
 
 #### Register + bootstrap
 
 ```bash
-kubectl apply -f vm-workloads/workload-entry.yaml
+kubectl apply -f assets/vm-workloads/workload-entry.yaml
 ```
 
 ```bash
@@ -323,7 +323,7 @@ for item in orders:10.20.0.21 payments:10.20.0.22 inventory:10.20.0.23; do
   vm_ip="${item#*:}"
   ssh "$VM_USER@$vm_ip" 'mkdir -p "$HOME/istio-bootstrap"; chmod 700 "$HOME/istio-bootstrap"'
   scp ".local/vm-entry/$app/"{cluster.env,mesh.yaml,root-cert.pem,istio-token,hosts} \
-    vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
+    assets/vm-workloads/install-vm.sh "$VM_USER@$vm_ip:istio-bootstrap/"
 done
 ```
 

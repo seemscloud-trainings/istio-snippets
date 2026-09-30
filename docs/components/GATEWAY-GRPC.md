@@ -105,13 +105,13 @@ spec:
           number: 9000
 ```
 
-![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](../../images/gateway-grpc/flow.png)
+![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](../../assets/images/gateway-grpc/flow.png)
 
 #### TLS Secret
 
 ```bash
 kubectl create secret tls grpc-end-gw-tls --cert=wp.pl.crt --key=wp.pl.key --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f gateway-grpc/app.yaml -f gateway-grpc/gateway.yaml
+kubectl apply -f assets/gateway-grpc/app.yaml -f assets/gateway-grpc/gateway.yaml
 ```
 
 #### Request
