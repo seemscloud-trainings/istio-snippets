@@ -1,7 +1,3 @@
-# Mesh Istio - Workload
-
-Select one reporter and upstream `cluster_name`. Client-side metrics describe application → dependency; server-side upstreams may describe Envoy → local container.
-
 ## Retries hide failures
 
 `envoy_cluster_upstream_rq_retry` · `envoy_cluster_upstream_rq_retry_limit_exceeded`
@@ -31,5 +27,3 @@ Increasing resets → correlate upstream logs with restarts, rollouts, shutdown 
 `container_cpu_usage_seconds_total` · `container_memory_working_set_bytes` · `kube_pod_container_status_restarts_total` · `kube_pod_init_container_status_restarts_total`
 
 Compare application containers with `istio-proxy`. Correlate latency with throttling, OOM or restarts; native sidecar restarts use init-container metrics.
-
-[Diagnostic commands](../management/ISTIOCTL.md) · [Upstream counters](https://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats.html)

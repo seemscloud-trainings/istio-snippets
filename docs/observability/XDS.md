@@ -1,7 +1,3 @@
-# Mesh Istio - xDS
-
-Use the same revision and time range. Counters: `rate()` / `increase()`. Missing data is not zero.
-
 ## Disconnected proxies
 
 `pilot_xds`
@@ -31,5 +27,3 @@ Persistent nonzero values → check overlapping hosts/ports with `istioctl analy
 `pilot_eds_no_instances` · `pilot_endpoint_not_ready`
 
 Services expected to be ready remain empty → check selectors, readiness, EndpointSlices and `proxy-config endpoints`. For remote services, check `remote-clusters`.
-
-[Diagnostic commands](../management/ISTIOCTL.md)

@@ -1,7 +1,3 @@
-# Mesh Istio - Gateway
-
-Select the gateway Pod and upstream `cluster_name`. TLS passthrough exposes TCP metrics, not HTTP status codes.
-
 ## No healthy upstream
 
 `envoy_cluster_upstream_cx_none_healthy`
@@ -31,5 +27,3 @@ New counter increases after a change → inspect NACK logs and actual Envoy conf
 `container_cpu_usage_seconds_total` · `container_memory_working_set_bytes` · `kube_pod_container_status_restarts_total` · `envoy_server_days_until_first_cert_expiring`
 
 Rising usage with latency/restarts → check limits, throttling and OOM events. Certificate lifetime approaching zero → check renewal and exact `NotAfter`; zero days need not mean expired.
-
-[Diagnostic commands](../management/ISTIOCTL.md) · [Response flags](https://istio.io/latest/docs/ops/common-problems/network-issues/)
