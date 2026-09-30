@@ -1,3 +1,4 @@
+```bash
 # LDS — listenery i porty
 istioctl proxy-config listeners pod-0 -n ns
 
@@ -15,3 +16,4 @@ istioctl proxy-config secret pod-0 -n ns
 
 # Połączenia i status xDS
 istioctl proxy-status --revision blue --verbosity 1
+```
