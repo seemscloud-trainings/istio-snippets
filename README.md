@@ -16,6 +16,7 @@
 - [CronJob](docs/configurations/CRONJOB.md)
 
 - [Analyze errors](docs/configurations/ANALYZE-ERRORS.md)
+- [ServiceEntry conflicts + exports](docs/configurations/SERVICE-ENTRY-CONFLICTS.md)
 
 # Management
 

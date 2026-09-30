@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: debug-tcp-one
+spec:
+  hosts: [one.wp.pl]
+  addresses: [198.51.100.42]
+  exportTo: ['*']
+  location: MESH_EXTERNAL
+  resolution: STATIC
+  ports:
+  - number: 9000
+    name: tcp
+    protocol: TCP
+  endpoints:
+  - address: 192.0.2.10
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: debug-tcp-two
+spec:
+  hosts: [two.wp.pl]
+  addresses: [198.51.100.42]
+  exportTo: [.]
+  location: MESH_EXTERNAL
+  resolution: STATIC
+  ports:
+  - number: 9000
+    name: tcp
+    protocol: TCP
+  endpoints:
+  - address: 192.0.2.20
