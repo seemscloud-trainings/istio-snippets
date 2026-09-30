@@ -18,6 +18,7 @@
 # Management
 
 - [istioctl](docs/management/ISTIOCTL.md)
+- [istioctl - Lab](docs/management/ISTIOCTL-LAB.md)
 
 # Observability
 
