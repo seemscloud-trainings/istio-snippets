@@ -1,35 +1,35 @@
-# Mesh Istio - Workload · top 5
+# Mesh Istio - Workload
 
-Wybierz aplikację, docelowy `cluster_name` i jeden reporter. Metryki upstream na sidecarze klienta opisują **aplikacja → zależność**; na proxy serwera mogą opisywać **Envoy → lokalny kontener**. Sprawdzaj kierunek klastra.
+Select one reporter and upstream `cluster_name`. Client-side metrics describe application → dependency; server-side upstreams may describe Envoy → local container.
 
-## 1. Retry ukrywają awarię zależności
+## Retries hide failures
 
-- **Panele:** Upstream retries per second + Retry limit exceeded per second — `envoy_cluster_upstream_rq_retry`, `envoy_cluster_upstream_rq_retry_limit_exceeded`.
-- **Problem:** klient nadal dostaje `200`, ale rośnie liczba prób i opóźnienie. Po wyczerpaniu liczby dozwolonych prób rośnie drugi licznik.
-- **Potwierdź:** `VirtualService.retries`, błędy zależności i liczbę prób w trace/logach. `503 → 503 → 200` to dwie dodatkowe próby, mimo końcowego sukcesu.
+`envoy_cluster_upstream_rq_retry` · `envoy_cluster_upstream_rq_retry_limit_exceeded`
 
-## 2. Timeout odpowiedzi czy problem z połączeniem?
+Retries and latency rise despite final `200` responses → check retry settings and dependency errors. `503 → 503 → 200` still means two retries.
 
-- **Panele:** Upstream timeouts per second + Connection timeouts per second — `envoy_cluster_upstream_rq_timeout`, `envoy_cluster_upstream_cx_connect_timeout`.
-- **Problem:** rośnie `rq_timeout` — upłynął czas oczekiwania na odpowiedź; rośnie `cx_connect_timeout` — timeout zestawiania połączenia. To różne etapy requestu.
-- **Potwierdź:** `timeout` / `perTryTimeout`, logi transportu i czas pracy zależności. Sprawdź też opóźnienie w puli; sam timeout requestu nie dowodzi wolnego kodu aplikacji.
+## Response timeout vs connection timeout
 
-## 3. Circuit breaker odcina nadmiar równoległych żądań
+`envoy_cluster_upstream_rq_timeout` · `envoy_cluster_upstream_cx_connect_timeout`
 
-- **Panel:** Pending request overflow per second — `envoy_cluster_upstream_rq_pending_overflow`.
-- **Problem:** błędy rosną dopiero przy większej równoległości, czasem przy niskim CPU. Proxy osiąga limit puli/requestów; wolny backend długo zajmuje dostępne miejsca.
-- **Potwierdź:** `UO`, `maxConnections`, `http1MaxPendingRequests`, `http2MaxRequests` i opóźnienie zależności. Sprawdź ustawienia na proxy wysyłającym ruch, nie tylko na serwerze.
+`rq_timeout`: response deadline exceeded. `cx_connect_timeout`: connection setup timed out. Check route deadlines, pool delay and dependency latency.
 
-## 4. Zależność resetuje requesty
+## Circuit breaker rejects requests
 
-- **Panel:** Request resets received per second — `envoy_cluster_upstream_rq_rx_reset`.
-- **Problem:** upstream przerywa request zamiast zwrócić pełną odpowiedź. Często koreluje z restartem, rolloutem, zamykaniem połączeń lub błędem protokołu.
-- **Potwierdź:** logi obu proxy, restarty backendu i jego graceful shutdown. Nie każdy reset jest crashem aplikacji — odróżnij restart od normalnego zamykania połączeń.
+`envoy_cluster_upstream_rq_pending_overflow`
 
-## 5. Przeciążona aplikacja czy jej Envoy?
+Failures appear under concurrency → check `UO`, connection/request limits and slow dependencies on the sending proxy.
 
-- **Panele:** Application CPU usage / working set / restarts oraz Proxy CPU usage / working set / restarts — `container_cpu_usage_seconds_total`, `container_memory_working_set_bytes`, `kube_pod_container_status_restarts_total`, `kube_pod_init_container_status_restarts_total`.
-- **Problem:** zasoby i restarty rosną po stronie aplikacji albo tylko `istio-proxy`. Suma dla całego Poda ukrywa tę różnicę; native sidecar ma restart counter w metrykach init-containerów.
-- **Potwierdź:** konkretny kontener, OOM/throttling, limity i moment wzrostu latencji. Wysokie CPU bez błędów i opóźnień samo w sobie nie oznacza awarii.
+## Upstream resets requests
 
-[Komendy diagnostyczne](../management/ISTIOCTL.md) · [Znaczenie liczników upstream](https://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats.html)
+`envoy_cluster_upstream_rq_rx_reset`
+
+Increasing resets → correlate upstream logs with restarts, rollouts, shutdown and protocol errors. A reset alone does not prove an application crash.
+
+## Application or Envoy overload
+
+`container_cpu_usage_seconds_total` · `container_memory_working_set_bytes` · `kube_pod_container_status_restarts_total` · `kube_pod_init_container_status_restarts_total`
+
+Compare application containers with `istio-proxy`. Correlate latency with throttling, OOM or restarts; native sidecar restarts use init-container metrics.
+
+[Diagnostic commands](../management/ISTIOCTL.md) · [Upstream counters](https://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats.html)

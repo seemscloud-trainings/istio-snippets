@@ -21,6 +21,6 @@
 
 # Observability
 
-- [xDS — top 5](docs/observability/XDS.md)
-- [Gateway — top 5](docs/observability/GATEWAY.md)
-- [Workload — top 5](docs/observability/WORKLOAD.md)
+- [xDS](docs/observability/XDS.md)
+- [Gateway](docs/observability/GATEWAY.md)
+- [Workload](docs/observability/WORKLOAD.md)

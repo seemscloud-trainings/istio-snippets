@@ -1,35 +1,35 @@
-# Mesh Istio - xDS · top 5
+# Mesh Istio - xDS
 
-Porównuj tę samą rewizję i przedział czasu. Liczniki oceniaj przez `rate()` / `increase()`, nie po wartości od startu procesu. Brak danych nie oznacza zera.
+Use the same revision and time range. Counters: `rate()` / `increase()`. Missing data is not zero.
 
-## 1. Proxy tracą połączenie z Istiod
+## Disconnected proxies
 
-- **Panel:** Connected proxies — `pilot_xds`.
-- **Problem:** nagły spadek bez rolloutów. Spadek na jednej replice i wzrost na drugiej może oznaczać przełączenie połączeń; sprawdź sumę dla rewizji.
-- **Potwierdź:** `proxy-status`, restarty Istiod i logi połączeń xDS. Sam spadek nie dowodzi przerwy w ruchu — Envoy może nadal używać ostatniej konfiguracji.
+`pilot_xds`
 
-## 2. Zmieniony YAML długo nie działa
+Unexpected drop across the revision → check `proxy-status`, Istiod restarts and xDS logs. A drop on one replica may be connection redistribution.
 
-- **Panele:** Proxy convergence p95 + Proxy queue delay p95 + Push latency p95 — `pilot_proxy_convergence_time_bucket`, `pilot_proxy_queue_time_bucket`, `pilot_xds_push_time_bucket`.
-- **Problem:** czas dostarczenia konfiguracji rośnie względem normalnego poziomu. Rosnąca kolejka wskazuje oczekiwanie; rosnący czas push wskazuje wolniejsze przetwarzanie/dystrybucję.
-- **Potwierdź:** obciążenie Istiod i konfigurację konkretnego Envoya. To opóźnienie aktualizacji konfiguracji, nie czas odpowiedzi aplikacji.
+## Slow configuration delivery
 
-## 3. Ciągłe przebudowy konfiguracji
+`pilot_proxy_convergence_time_bucket` · `pilot_proxy_queue_time_bucket` · `pilot_xds_push_time_bucket`
 
-- **Panele:** Push triggers per second + Config events per interval + Registry events per interval — `pilot_push_triggers`, `pilot_k8s_cfg_events`, `pilot_k8s_reg_events`.
-- **Problem:** długotrwały wzrost zdarzeń razem ze wzrostem convergence/queue. Typowe przy częstych zmianach endpointów, restartach lub kontrolerze stale zapisującym zasoby.
-- **Potwierdź:** etykiety `type` / `event`, historię rolloutów i zmian GitOps. Krótki wzrost podczas wdrożenia jest oczekiwany; to nie liczba requestów aplikacji.
+Rising p95 → check Istiod load, queue delay and the affected Envoy config. These measure configuration delivery, not application latency.
 
-## 4. Konflikt hostów albo listenerów
+## Excessive configuration updates
 
-- **Panele:** Duplicate VirtualService domains + Inbound listener conflicts + Outbound listener conflicts — `pilot_vservice_dup_domain`, `pilot_conflict_inbound_listener`, `pilot_conflict_outbound_listener_tcp_over_current_tcp`.
-- **Problem:** dodatnie wartości pojawiają się po zmianie routingu; część konfiguracji może nie zostać uwzględniona zgodnie z zamiarem.
-- **Potwierdź:** `istioctl analyze`, powtarzające się hosty/porty oraz rzeczywiste `proxy-config routes` i `listeners`. Sam licznik nie wskazuje winnego manifestu.
+`pilot_push_triggers` · `pilot_k8s_cfg_events` · `pilot_k8s_reg_events`
 
-## 5. Usługa jest znana, ale nie ma gotowych endpointów
+Sustained event spikes plus growing queues → inspect endpoint churn, rollouts and repeatedly updated resources. Short rollout spikes are expected.
 
-- **Panele:** EDS services without instances + Endpoints not ready — `pilot_eds_no_instances`, `pilot_endpoint_not_ready`.
-- **Problem:** wartości utrzymują się mimo oczekiwanych działających replik; proxy może nie mieć dokąd skierować ruchu.
-- **Potwierdź:** selector Service, readiness, EndpointSlices i `proxy-config endpoints`. W multicluster sprawdź także `remote-clusters`; świadomie pusta usługa nie oznacza awarii Istiod.
+## Conflicting configuration
 
-[Komendy diagnostyczne](../management/ISTIOCTL.md)
+`pilot_vservice_dup_domain` · `pilot_conflict_inbound_listener` · `pilot_conflict_outbound_listener_tcp_over_current_tcp`
+
+Persistent nonzero values → check overlapping hosts/ports with `istioctl analyze`, `proxy-config routes` and `listeners`.
+
+## Missing ready endpoints
+
+`pilot_eds_no_instances` · `pilot_endpoint_not_ready`
+
+Services expected to be ready remain empty → check selectors, readiness, EndpointSlices and `proxy-config endpoints`. For remote services, check `remote-clusters`.
+
+[Diagnostic commands](../management/ISTIOCTL.md)
