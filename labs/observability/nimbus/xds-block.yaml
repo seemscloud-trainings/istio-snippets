@@ -143,7 +143,8 @@ spec:
         sidecar.istio.io/inject: 'true'
         sidecar.istio.io/nativeSidecar: 'true'
         proxy.istio.io/config: '{"holdApplicationUntilProxyStarts": false, "proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*",
-          ".*upstream_cx_.*", ".*cds_update_.*", ".*lds_update_.*", ".*listener_manager.*", ".*cluster_manager.*"]}}'
+          ".*upstream_cx_.*", ".*cds_update_.*", ".*lds_update_.*", ".*listener_manager.*", ".*cluster_manager.*"]}, "discoveryAddress":
+          "127.0.0.1:15012"}'
     spec:
       restartPolicy: Never
       securityContext:

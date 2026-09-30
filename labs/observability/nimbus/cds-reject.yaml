@@ -1,3 +1,12 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: obs-cds-reject-traffic
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: cds-reject
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -162,6 +171,13 @@ spec:
           import time,os,threading,urllib.request,urllib.error,collections
           from concurrent.futures import ThreadPoolExecutor
           time.sleep(30)
+          import ssl,json
+          from pathlib import Path
+          ctx=ssl.create_default_context(cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+          token=Path("/var/run/secrets/kubernetes.io/serviceaccount/token").read_text().strip()
+          patch=[{"op":"replace","path":"/spec/configPatches/0/patch/value/connect_timeout","value":"-1s"}]
+          req=urllib.request.Request("https://kubernetes.default.svc/apis/networking.istio.io/v1alpha3/namespaces/playground-nimbus-istio-enabled/envoyfilters/obs-cds-reject",data=json.dumps(patch).encode(),method="PATCH",headers={"Authorization":"Bearer "+token,"Content-Type":"application/json-patch+json"})
+          with urllib.request.urlopen(req,context=ctx,timeout=15) as r:print("CDS fault armed after baseline scrape",r.status,flush=True)
           end=time.monotonic()+180;counts=collections.Counter();lock=threading.Lock()
           def worker(_):
            while time.monotonic()<end:
@@ -195,6 +211,7 @@ spec:
           limits:
             cpu: 500m
             memory: 128Mi
+      serviceAccountName: obs-cds-reject-traffic
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
@@ -218,4 +235,39 @@ spec:
     patch:
       operation: MERGE
       value:
-        connect_timeout: -1s
+        connect_timeout: 10s
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: obs-cds-reject-traffic
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: cds-reject
+rules:
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - envoyfilters
+  resourceNames:
+  - obs-cds-reject
+  verbs:
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: obs-cds-reject-traffic
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: cds-reject
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: obs-cds-reject-traffic
+subjects:
+- kind: ServiceAccount
+  name: obs-cds-reject-traffic
+  namespace: playground-nimbus-istio-enabled

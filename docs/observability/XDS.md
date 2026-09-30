@@ -110,7 +110,7 @@ kubectl delete -f labs/observability/nimbus/tcp-conflict.yaml --ignore-not-found
 
 **Dashboard:** **Mesh Istio - xDS** → **Connected proxies**.
 
-**Expected:** The new proxy cannot connect to Istiod and does not increase the connected-proxy count.
+**Expected:** The Job proxy targets an unreachable discovery address, cannot connect to Istiod and does not increase the connected-proxy count.
 
 ```bash
 kubectl delete -f labs/observability/nimbus/xds-block.yaml --ignore-not-found --wait=true

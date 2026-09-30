@@ -53,11 +53,11 @@ kubectl delete -f labs/observability/nimbus/overflow.yaml --ignore-not-found --w
 
 ## Application resets connections
 
-**Metric:** `envoy_cluster_upstream_rq_rx_reset`.
+**Metric:** `envoy_cluster_upstream_cx_destroy_remote_with_active_rq`.
 
-**Dashboard:** **Mesh Istio - Workload** → **Request resets received per second**.
+**Dashboard:** **Mesh Istio - Workload** → **Upstream connection resets with active requests per second**.
 
-**Expected:** The backend resets connections; its inbound reset counter increases and clients receive HTTP 503.
+**Expected:** The backend resets connections; its inbound connection-reset counter increases and clients receive HTTP 503.
 
 ```bash
 kubectl delete -f labs/observability/nimbus/reset.yaml --ignore-not-found --wait=true

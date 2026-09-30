@@ -176,6 +176,9 @@ spec:
   - name: http
     port: 80
     targetPort: 8080
+  - name: https-missing
+    port: 8443
+    targetPort: 8443
 ---
 apiVersion: networking.istio.io/v1
 kind: Gateway
@@ -351,3 +354,38 @@ subjects:
 - kind: ServiceAccount
   name: obs-gateway-warming-proxy
   namespace: playground-nimbus-istio-gateway
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: obs-gateway-warming-wait
+  namespace: playground-nimbus-istio-gateway
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-warming
+spec:
+  workloadSelector:
+    labels:
+      istio: gateway-nimbus-obs-gateway-warming-proxy
+  configPatches:
+  - applyTo: FILTER_CHAIN
+    match:
+      context: GATEWAY
+      listener:
+        portNumber: 8443
+        filterChain:
+          sni: obs-gateway-warming.nimbus.test
+    patch:
+      operation: MERGE
+      value:
+        transport_socket:
+          name: envoy.transport_sockets.tls
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+            common_tls_context:
+              tls_certificate_sds_secret_configs:
+              - name: kubernetes://obs-missing-cert
+                sds_config:
+                  ads: {}
+                  resource_api_version: V3
+                  initial_fetch_timeout: 0s

@@ -1,6 +1,15 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: obs-gateway-reject-traffic
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-reject
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: obs-gateway-reject-proxy
   namespace: playground-nimbus-istio-gateway
   labels:
@@ -218,7 +227,7 @@ spec:
     patch:
       operation: MERGE
       value:
-        connect_timeout: -1s
+        connect_timeout: 10s
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
@@ -296,6 +305,13 @@ spec:
           import time,os,threading,urllib.request,urllib.error,collections
           from concurrent.futures import ThreadPoolExecutor
           time.sleep(30)
+          import ssl,json
+          from pathlib import Path
+          ctx=ssl.create_default_context(cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+          token=Path("/var/run/secrets/kubernetes.io/serviceaccount/token").read_text().strip()
+          patch=[{"op":"replace","path":"/spec/configPatches/0/patch/value/connect_timeout","value":"-1s"}]
+          req=urllib.request.Request("https://kubernetes.default.svc/apis/networking.istio.io/v1alpha3/namespaces/playground-nimbus-istio-gateway/envoyfilters/obs-gateway-reject",data=json.dumps(patch).encode(),method="PATCH",headers={"Authorization":"Bearer "+token,"Content-Type":"application/json-patch+json"})
+          with urllib.request.urlopen(req,context=ctx,timeout=15) as r:print("CDS fault armed after baseline scrape",r.status,flush=True)
           end=time.monotonic()+180;counts=collections.Counter();lock=threading.Lock()
           def worker(_):
            while time.monotonic()<end:
@@ -331,3 +347,39 @@ spec:
           limits:
             cpu: 500m
             memory: 128Mi
+      serviceAccountName: obs-gateway-reject-traffic
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: obs-gateway-reject-traffic
+  namespace: playground-nimbus-istio-gateway
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-reject
+rules:
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - envoyfilters
+  resourceNames:
+  - obs-gateway-reject
+  verbs:
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: obs-gateway-reject-traffic
+  namespace: playground-nimbus-istio-gateway
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-reject
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: obs-gateway-reject-traffic
+subjects:
+- kind: ServiceAccount
+  name: obs-gateway-reject-traffic
+  namespace: playground-nimbus-istio-enabled
