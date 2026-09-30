@@ -1,337 +1,214 @@
-## Disconnected proxies
+# Xds — Nimbus observability labs
 
-`pilot_xds`
+All YAML files include namespaces. Run from the repository root with a cluster-admin context; participant RBAC does not allow every resource. Run one scenario at a time. These files are intentionally faulty and must not be added to an auto-sync repository.
 
-Client namespace; NetworkPolicy enforcement required, with no other policy allowing port 15012. On reconnect, app-test cannot reach Istiod; existing connections may survive until closed.
+Each traffic Job waits 30 seconds, runs 20 workers for 180 seconds, and stops after at most 240 seconds. Native Istio sidecars let Jobs complete. Re-applying a completed Job does not rerun it: the command below deletes only that scenario before recreating it. Never use `kubectl apply -f labs/observability/nimbus/`.
 
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: block-xds
-spec:
-  podSelector:
-    matchLabels:
-      app: app-test
-  policyTypes: [Egress]
-  egress:
-  - ports:
-    - protocol: UDP
-      port: 53
-    - protocol: TCP
-      port: 53
-    - protocol: TCP
-      port: 80
-    - protocol: TCP
-      port: 443
-    - protocol: TCP
-      port: 8080
+Prometheus scrapes Istiod/Envoy every 15 seconds. Select Last 15 minutes, refresh 15 seconds, and wait 30–60 seconds. Error counters are viewed as rates/increases, not raw totals.
+
+## Churn
+
+Apply once; dedicated resources generate the condition and the Job runs traffic automatically.
+
+- **Metric:** `pilot_push_triggers`.
+- **Dashboard:** **Mesh Istio - xDS** → **Push triggers per second**.
+- **Filter:** Istiod revision `blue`; metric is shared across all workloads served by that revision.
+
+**Expected:** Readiness alternates every 5 seconds, producing EndpointSlice updates and xDS pushes.
+
+[Open complete YAML](../../labs/observability/nimbus/churn.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/churn.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/churn.yaml
 ```
 
-## Slow configuration delivery
+Cleanup before the next scenario:
 
-`pilot_proxy_convergence_time_bucket` · `pilot_proxy_queue_time_bucket` · `pilot_xds_push_time_bucket`
+[Open complete YAML](../../labs/observability/nimbus/churn.yaml)
 
-Low Istiod CPU limits can grow queues and convergence time under load. Change lab configuration while generating traffic; idle Istiod may show no slowdown.
-
-**Istiod chart values · isolated control plane**
-
-```yaml
-resources:
-  requests:
-    cpu: 10m
-  limits:
-    cpu: 10m
+```bash
+kubectl delete -f labs/observability/nimbus/churn.yaml --ignore-not-found --wait=true
 ```
 
-## Endpoint churn
+## Empty
 
-`pilot_k8s_reg_events` · `pilot_push_triggers`
+Apply once; dedicated resources generate the condition and the Job runs traffic automatically.
 
-Readiness flips every five seconds → endpoint updates and repeated pushes. This creates configuration churn without restarting the application.
+- **Metric:** `pilot_eds_no_instances`.
+- **Dashboard:** **Mesh Istio - xDS** → **EDS services without instances**.
+- **Filter:** Istiod revision `blue`; metric is shared across all workloads served by that revision.
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: churn-lab
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: churn-lab
-  template:
-    metadata:
-      labels:
-        app: churn-lab
-        sidecar.istio.io/inject: 'true'
-    spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        seccompProfile:
-          type: RuntimeDefault
-      containers:
-      - name: app
-        image: busybox:1.37.0
-        command: [httpd, -f, -p, '8080']
-        readinessProbe:
-          exec:
-            command: [sh, -c, test $(( $(date +%s) / 5 % 2 )) -eq 0]
-          periodSeconds: 1
-          successThreshold: 1
-          failureThreshold: 1
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop: [ALL]
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: churn-lab
-spec:
-  selector:
-    app: churn-lab
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
+**Expected:** Requests return 503/UH; the Service has no matching Pods.
+
+[Open complete YAML](../../labs/observability/nimbus/empty.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/empty.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/empty.yaml
 ```
 
-## Conflicting TCP listeners
+Cleanup before the next scenario:
 
-`pilot_conflict_outbound_listener_tcp_over_current_tcp`
+[Open complete YAML](../../labs/observability/nimbus/empty.yaml)
 
-Two TCP services claim the same VIP:9000. Inspect the conflict counter and generated listener; both destinations cannot be distinguished on that address.
-
-```yaml
-apiVersion: networking.istio.io/v1
-kind: ServiceEntry
-metadata:
-  name: one
-spec:
-  hosts: [one.wp.pl]
-  addresses: [198.51.100.10]
-  exportTo: [.]
-  location: MESH_EXTERNAL
-  resolution: STATIC
-  ports:
-  - number: 9000
-    name: tcp
-    protocol: TCP
-  endpoints:
-  - address: 192.0.2.10
----
-apiVersion: networking.istio.io/v1
-kind: ServiceEntry
-metadata:
-  name: two
-spec:
-  hosts: [two.wp.pl]
-  addresses: [198.51.100.10]
-  exportTo: [.]
-  location: MESH_EXTERNAL
-  resolution: STATIC
-  ports:
-  - number: 9000
-    name: tcp
-    protocol: TCP
-  endpoints:
-  - address: 192.0.2.20
+```bash
+kubectl delete -f labs/observability/nimbus/empty.yaml --ignore-not-found --wait=true
 ```
 
-## Service without endpoints
+## Unready
 
-`pilot_eds_no_instances`
+Apply once; dedicated resources generate the condition and the Job runs traffic automatically.
 
-No Pod has app=does-not-exist. The service has no endpoints; inspect EDS and the selector.
+- **Metric:** `pilot_endpoint_not_ready`.
+- **Dashboard:** **Mesh Istio - xDS** → **Endpoints not ready**.
+- **Filter:** Istiod revision `blue`; metric is shared across all workloads served by that revision.
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: empty-lab
-spec:
-  selector:
-    app: does-not-exist
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
+**Expected:** The backend remains unready and excluded from endpoints; requests return 503/UH.
+
+[Open complete YAML](../../labs/observability/nimbus/unready.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/unready.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/unready.yaml
 ```
 
-## Pods never become ready
+Cleanup before the next scenario:
 
-`pilot_endpoint_not_ready` · `pilot_eds_no_instances`
+[Open complete YAML](../../labs/observability/nimbus/unready.yaml)
 
-The process runs but its readiness probe always fails. EndpointSlices contain an unready endpoint; it is excluded from normal routing.
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: unready-lab
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: unready-lab
-  template:
-    metadata:
-      labels:
-        app: unready-lab
-        sidecar.istio.io/inject: 'true'
-    spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        seccompProfile:
-          type: RuntimeDefault
-      containers:
-      - name: app
-        image: busybox:1.37.0
-        command: [httpd, -f, -p, '8080']
-        readinessProbe:
-          exec:
-            command: [sh, -c, exit 1]
-          periodSeconds: 2
-          failureThreshold: 1
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop: [ALL]
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: unready-lab
-spec:
-  selector:
-    app: unready-lab
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
+```bash
+kubectl delete -f labs/observability/nimbus/unready.yaml --ignore-not-found --wait=true
 ```
 
-## Envoy rejects a cluster
+## Cds Reject
 
-`envoy_cluster_manager_cds_update_rejected`
+Apply once; dedicated resources generate the condition and the Job runs traffic automatically.
 
-Client namespace; app-test.ns must exist. The negative connect timeout is deliberately invalid for Envoy. Expect a CDS NACK; inspect the proxy counter in Gateway/Workload and Istiod logs.
+- **Metric:** `envoy_cluster_manager_cds_update_rejected`.
+- **Dashboard:** **Mesh Istio - Workload** → **CDS updates rejected per interval**.
+- **Filter:** namespace `playground-nimbus-istio-enabled`, Pod `obs-cds-reject-traffic-*`; select all upstream clusters, then narrow to `obs-`.
 
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: bad-connect-timeout
-spec:
-  configPatches:
-  - applyTo: CLUSTER
-    match:
-      context: SIDECAR_OUTBOUND
-      cluster:
-        service: app-test.ns.svc.cluster.local
-        portNumber: 80
-    patch:
-      operation: MERGE
-      value:
-        connect_timeout: -1s
+**Expected:** A CDS rejection counter increases if the invalid field passes admission.
+
+[Open complete YAML](../../labs/observability/nimbus/cds-reject.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/cds-reject.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/cds-reject.yaml
 ```
 
-## Gateway waits for an absent TLS Secret
+Cleanup before the next scenario:
 
-`envoy_listener_manager_total_listeners_warming`
+[Open complete YAML](../../labs/observability/nimbus/cds-reject.yaml)
 
-Use the gateway namespace. missing-lab-cert must not exist; replace the lab listener/route. A new HTTPS listener waits for SDS. An existing listener may keep its previous certificate.
-
-```yaml
-apiVersion: networking.istio.io/v1
-kind: Gateway
-metadata:
-  name: gateway-blue
-spec:
-  selector:
-    istio: gateway-blue
-  servers:
-  - port:
-      number: 443
-      name: https
-      protocol: HTTPS
-    hosts: [wp.pl]
-    tls:
-      mode: SIMPLE
-      credentialName: missing-lab-cert
----
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: fault-lab
-spec:
-  hosts: [wp.pl]
-  gateways: [gateway-blue]
-  exportTo: [.]
-  http:
-  - route:
-    - destination:
-        host: app-test.ns.svc.cluster.local
-        port:
-          number: 80
+```bash
+kubectl delete -f labs/observability/nimbus/cds-reject.yaml --ignore-not-found --wait=true
 ```
 
-## Sidecar excludes a dependency
+The deliberately invalid Envoy timeout may be rejected by admission in versions that validate it earlier. In that case no CDS NACK reaches Envoy; the admission error is the result. Do not claim the metric changed without checking it.
 
+## Excluded
 
+Apply once; dedicated resources generate the condition and the Job runs traffic automatically.
 
-Client namespace; replace its existing Sidecar. app-test.ns is excluded. With REGISTRY_ONLY, requests to it are blocked; xDS may remain fully synced.
+- **Metric:** `istio_requests_total`.
+- **Dashboard:** **Mesh Istio - Workload** → **HTTP rate by status**.
+- **Filter:** namespace `playground-nimbus-istio-enabled`, Pod `obs-excluded-traffic-*`; select all upstream clusters, then narrow to `obs-`.
 
-```yaml
-apiVersion: networking.istio.io/v1
-kind: Sidecar
-metadata:
-  name: default
-spec:
-  egress:
-  - hosts: [istio-system/*]
-  outboundTrafficPolicy:
-    mode: REGISTRY_ONLY
+**Expected:** Traffic is rejected as an unknown destination despite healthy xDS connectivity.
+
+[Open complete YAML](../../labs/observability/nimbus/excluded.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/excluded.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/excluded.yaml
 ```
 
-## Remote cluster cannot be synchronized
+Cleanup before the next scenario:
 
-`istiod_managed_clusters`
+[Open complete YAML](../../labs/observability/nimbus/excluded.yaml)
 
-Isolated istio-system namespace. The remote API address refuses connections. Check remote-clusters and Istiod logs; managed-cluster count alone does not prove connectivity.
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: istio-remote-secret-remote-lab
-  labels:
-    istio/multiCluster: 'true'
-  annotations:
-    networking.istio.io/cluster: remote-lab
-type: Opaque
-stringData:
-  remote-lab: |
-    apiVersion: v1
-    kind: Config
-    clusters:
-    - name: remote-lab
-      cluster:
-        server: https://127.0.0.1:1
-    users:
-    - name: remote-lab
-      user:
-        token: invalid-lab-token
-    contexts:
-    - name: remote-lab
-      context:
-        cluster: remote-lab
-        user: remote-lab
-    current-context: remote-lab
+```bash
+kubectl delete -f labs/observability/nimbus/excluded.yaml --ignore-not-found --wait=true
 ```
+
+A 502/503 or connection failure is expected. BlackHole traffic can lack ordinary service labels; use proxy access logs and `istioctl proxy-config clusters` if the HTTP chart has no series.
+
+## Tcp Conflict
+
+Apply once; dedicated resources generate the condition and the Job runs traffic automatically.
+
+- **Metric:** `pilot_conflict_outbound_listener_tcp_over_current_tcp`.
+- **Dashboard:** **Mesh Istio - xDS** → **Outbound listener conflicts**.
+- **Filter:** Istiod revision `blue`; metric is shared across all workloads served by that revision.
+
+**Expected:** Istiod encounters two services sharing VIP 198.51.100.10:9000; inspect the conflict gauge and proxy listener.
+
+[Open complete YAML](../../labs/observability/nimbus/tcp-conflict.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/tcp-conflict.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/tcp-conflict.yaml
+```
+
+Cleanup before the next scenario:
+
+[Open complete YAML](../../labs/observability/nimbus/tcp-conflict.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/tcp-conflict.yaml --ignore-not-found --wait=true
+```
+
+## Xds Block
+
+Apply once; dedicated resources generate the condition and the Job runs traffic automatically.
+
+- **Metric:** `pilot_xds`.
+- **Dashboard:** **Mesh Istio - xDS** → **Connected proxies**.
+- **Filter:** Istiod revision `blue`; metric is shared across all workloads served by that revision.
+
+**Expected:** The new Job proxy cannot establish xDS; other Nimbus proxies remain unaffected.
+
+[Open complete YAML](../../labs/observability/nimbus/xds-block.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/xds-block.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/xds-block.yaml
+```
+
+Cleanup before the next scenario:
+
+[Open complete YAML](../../labs/observability/nimbus/xds-block.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/xds-block.yaml --ignore-not-found --wait=true
+```
+
+The Job proxy starts already blocked from Istiod: expect an unsynced proxy / no new connected-proxy increment, not a guaranteed decrease of the existing cluster-wide count. NetworkPolicy enforcement is required; an additional allow-all policy would override this restriction. Inspect `istioctl proxy-status` as well.
+
+## Configuration delivery under endpoint churn
+
+Ten dedicated Pods alternate readiness every five seconds. This automatically creates repeated endpoint updates and xDS pushes. No shared Istiod resources are patched.
+
+- **Metrics:** `pilot_proxy_convergence_time_bucket`, `pilot_proxy_queue_time_bucket`, `pilot_xds_push_time_bucket`.
+- **Dashboard:** **Mesh Istio - xDS** → **Proxy convergence p95**, **Proxy queue delay p95**, **Push latency p95**.
+- **Filter:** revision `blue`, all Istiod Pods for that revision.
+- **Expected:** new observations in the delivery histograms; slow delivery is not guaranteed on a healthy, lightly loaded control plane.
+
+[Open complete YAML](../../labs/observability/nimbus/config-delivery.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/config-delivery.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/config-delivery.yaml
+```
+
+Cleanup:
+
+```bash
+kubectl delete -f labs/observability/nimbus/config-delivery.yaml --ignore-not-found --wait=true
+```
+
+## Unreachable remote cluster — separate administrator lab
+
+This original example is not included in the Nimbus apply-ready set. Reproducing it requires an isolated Istiod and remote kubeconfig. Adding an invalid remote Secret to shared istio-system would affect the common control plane. `istiod_managed_clusters` alone cannot prove a remote API connection failure; use remote-cluster status and Istiod logs. Do not apply the original broken remote Secret to Karakoram's shared control plane.

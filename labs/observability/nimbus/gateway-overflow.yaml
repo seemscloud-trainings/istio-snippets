@@ -1,0 +1,273 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obs-gateway-overflow
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: obs-gateway-overflow
+  template:
+    metadata:
+      labels:
+        app: obs-gateway-overflow
+        observability-lab: nimbus
+        istio.io/rev: blue
+      annotations:
+        sidecar.istio.io/inject: 'true'
+        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*",
+          ".*upstream_cx_.*", ".*cds_update_.*", ".*lds_update_.*", ".*listener_manager.*",
+          ".*cluster_manager.*"]}}'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: app
+        image: python:3.12-alpine
+        command:
+        - python
+        - -u
+        - -c
+        - "import os,time,socket,struct,threading\nfrom http.server import ThreadingHTTPServer,BaseHTTPRequestHandler\n\
+          mode=os.getenv(\"MODE\",\"healthy\")\nclass Handler(BaseHTTPRequestHandler):\n\
+          \ def do_GET(self):\n  if self.path==\"/ready\":\n   self.send_response(503\
+          \ if mode==\"unready\" or (mode==\"churn\" and int(time.time()/5)%2) else\
+          \ 200);self.end_headers();return\n  if mode==\"slow\":time.sleep(3)\n  if\
+          \ mode==\"reset\":\n   self.connection.setsockopt(socket.SOL_SOCKET,socket.SO_LINGER,struct.pack(\"\
+          ii\",1,0));self.connection.close();return\n  code=503 if mode==\"flaky\"\
+          \ and int(time.time()*1000)%3 else 200\n  self.send_response(code);self.end_headers()\n\
+          \  try:self.wfile.write(b\"observability lab\")\n  except (BrokenPipeError,ConnectionResetError):pass\n\
+          \ def log_message(self,*args):pass\nif mode==\"oom\":\n def allocate():\n\
+          \  time.sleep(20);data=[]\n  while True:data.append(bytearray(1024*1024));time.sleep(.02)\n\
+          \ threading.Thread(target=allocate,daemon=True).start()\nThreadingHTTPServer((\"\
+          0.0.0.0\",8080),Handler).serve_forever()\n"
+        env:
+        - name: MODE
+          value: slow
+        ports:
+        - name: http
+          containerPort: 8080
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          periodSeconds: 1
+          failureThreshold: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: obs-gateway-overflow
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  selector:
+    app: obs-gateway-overflow
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obs-gateway
+  namespace: playground-nimbus-istio-gateway
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      istio: obs-gateway
+  template:
+    metadata:
+      labels:
+        istio: obs-gateway
+        app: obs-gateway
+        observability-lab: nimbus
+        istio.io/rev: blue
+      annotations:
+        inject.istio.io/templates: gateway
+        sidecar.istio.io/inject: 'true'
+        proxy.istio.io/config: '{"proxyStatsMatcher": {"inclusionRegexps": [".*upstream_rq_.*",
+          ".*upstream_cx_.*", ".*cds_update_.*", ".*lds_update_.*", ".*listener_manager.*",
+          ".*cluster_manager.*"]}}'
+    spec:
+      securityContext:
+        runAsUser: 1337
+        runAsGroup: 1337
+        fsGroup: 1337
+      containers:
+      - name: istio-proxy
+        image: auto
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: obs-gateway
+  namespace: playground-nimbus-istio-gateway
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  selector:
+    istio: obs-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: obs-gateway
+  namespace: playground-nimbus-istio-gateway
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  selector:
+    istio: obs-gateway
+  servers:
+  - port:
+      number: 8080
+      name: http-lab
+      protocol: HTTP
+    hosts:
+    - obs.nimbus.test
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: obs-gateway-overflow
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  host: obs-gateway-overflow.playground-nimbus-istio-enabled.svc.cluster.local
+  exportTo:
+  - '*'
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 1
+      http:
+        http1MaxPendingRequests: 1
+        http2MaxRequests: 1
+        h2UpgradePolicy: DO_NOT_UPGRADE
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: obs-gateway-overflow
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  hosts:
+  - obs.nimbus.test
+  gateways:
+  - playground-nimbus-istio-gateway/obs-gateway
+  exportTo:
+  - '*'
+  http:
+  - route:
+    - destination:
+        host: obs-gateway-overflow.playground-nimbus-istio-enabled.svc.cluster.local
+        port:
+          number: 80
+    retries:
+      attempts: 0
+    timeout: 10s
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: obs-gateway-overflow-traffic
+  namespace: playground-nimbus-istio-enabled
+  labels:
+    observability-lab: nimbus
+    observability-scenario: gateway-overflow
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 240
+  template:
+    metadata:
+      labels:
+        app: obs-gateway-overflow-traffic
+        observability-lab: nimbus
+        istio.io/rev: blue
+      annotations:
+        sidecar.istio.io/inject: 'false'
+        sidecar.istio.io/nativeSidecar: 'true'
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: traffic
+        image: python:3.12-alpine
+        command:
+        - python
+        - -u
+        - -c
+        - "import time,os,threading,urllib.request,urllib.error,collections\nfrom\
+          \ concurrent.futures import ThreadPoolExecutor\n# Wait for deployment and\
+          \ xDS propagation; no human request loop needed.\ntime.sleep(30)\nend=time.monotonic()+180;counts=collections.Counter();lock=threading.Lock()\n\
+          def worker(_):\n while time.monotonic()<end:\n  try:\n   r=urllib.request.urlopen(urllib.request.Request(os.environ[\"\
+          URL\"],headers={\"Host\":\"obs.nimbus.test\"}),timeout=5);r.read();code=r.status\n\
+          \  except urllib.error.HTTPError as e:code=e.code;e.read()\n  except Exception\
+          \ as e:code=type(e).__name__\n  with lock:counts[str(code)]+=1\n  time.sleep(.05)\n\
+          with ThreadPoolExecutor(max_workers=20) as pool:list(pool.map(worker,range(20)))\n\
+          print(dict(counts),flush=True)\n"
+        env:
+        - name: URL
+          value: http://obs-gateway.playground-nimbus-istio-gateway.svc.cluster.local
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi

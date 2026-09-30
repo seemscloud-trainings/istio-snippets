@@ -1,131 +1,161 @@
-## No healthy upstream
+# Gateway — Nimbus observability labs
 
-`envoy_cluster_upstream_cx_none_healthy`
+All YAML files include namespaces. Run from the repository root with a cluster-admin context; participant RBAC does not allow every resource. Run one scenario at a time. These files are intentionally faulty and must not be added to an auto-sync repository.
 
-Replace the lab gateway route; no backend Pod matches the subset. Requests for wp.pl produce UH/503 even though other subsets may be healthy.
+Each traffic Job waits 30 seconds, runs 20 workers for 180 seconds, and stops after at most 240 seconds. Native Istio sidecars let Jobs complete. Re-applying a completed Job does not rerun it: the command below deletes only that scenario before recreating it. Never use `kubectl apply -f labs/observability/nimbus/`.
 
-```yaml
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: fault-lab
-spec:
-  host: app-test.ns.svc.cluster.local
-  exportTo: [.]
-  subsets:
-  - name: missing
-    labels:
-      version: does-not-exist
----
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: fault-lab
-spec:
-  hosts: [wp.pl]
-  gateways: [gateway-blue]
-  exportTo: [.]
-  http:
-  - route:
-    - destination:
-        host: app-test.ns.svc.cluster.local
-        port:
-          number: 80
-        subset: missing
+Prometheus scrapes Istiod/Envoy every 15 seconds. Select Last 15 minutes, refresh 15 seconds, and wait 30–60 seconds. Error counters are viewed as rates/increases, not raw totals.
+
+## Gateway Unhealthy
+
+The dedicated obs-gateway receives automatic traffic. The existing gateway-blue stays untouched.
+
+- **Metric:** `envoy_cluster_upstream_cx_none_healthy`.
+- **Dashboard:** **Mesh Istio - Gateway** → **No healthy upstream per second**.
+- **Filter:** namespace `playground-nimbus-istio-gateway`, Pod `obs-gateway-*`; upstream diagnostics use the `obs-gateway-*.playground-nimbus-istio-enabled.svc.cluster.local` cluster. For Runtime CPU panels select container `istio-proxy`.
+
+**Expected:** Gateway returns 503/UH because subset missing has no endpoints.
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-unhealthy.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-unhealthy.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/gateway-unhealthy.yaml
 ```
 
-## TLS sent to a plaintext backend
+Cleanup before the next scenario:
 
-`envoy_cluster_upstream_cx_connect_fail` · `envoy_cluster_upstream_cx_connect_timeout`
+[Open complete YAML](../../labs/observability/nimbus/gateway-unhealthy.yaml)
 
-Gateway namespace; the existing route targets app-test.ns:80, which serves plaintext HTTP. SIMPLE forces TLS to that port. Send requests and inspect UF and transport failure reasons.
-
-```yaml
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: fault-lab
-spec:
-  host: app-test.ns.svc.cluster.local
-  exportTo: [.]
-  trafficPolicy:
-    tls:
-      mode: SIMPLE
-      sni: wp.pl
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-unhealthy.yaml --ignore-not-found --wait=true
 ```
 
-## Connection pool overflow
+## Gateway Tls
 
-`envoy_cluster_upstream_rq_pending_overflow`
+The dedicated obs-gateway receives automatic traffic. The existing gateway-blue stays untouched.
 
-Gateway namespace; backend app-test.ns:80 must take about 3 seconds. Send at least 20 concurrent requests through the gateway → UO/overflow. Sequential requests may succeed.
+- **Metric:** `envoy_cluster_upstream_cx_connect_fail`.
+- **Dashboard:** **Mesh Istio - Gateway** → **Connection failures per second**.
+- **Filter:** namespace `playground-nimbus-istio-gateway`, Pod `obs-gateway-*`; upstream diagnostics use the `obs-gateway-*.playground-nimbus-istio-enabled.svc.cluster.local` cluster. For Runtime CPU panels select container `istio-proxy`.
 
-```yaml
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: fault-lab
-spec:
-  host: app-test.ns.svc.cluster.local
-  exportTo: [.]
-  trafficPolicy:
-    connectionPool:
-      tcp:
-        maxConnections: 1
-      http:
-        http1MaxPendingRequests: 1
-        http2MaxRequests: 1
-        h2UpgradePolicy: DO_NOT_UPGRADE
+**Expected:** Gateway reports a TLS connection failure/503 because SIMPLE TLS targets the HTTP application port. A connect-timeout increase is not required.
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-tls.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-tls.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/gateway-tls.yaml
 ```
 
-## Rejected configuration
+Cleanup before the next scenario:
 
-`envoy_cluster_manager_cds_update_rejected`
+[Open complete YAML](../../labs/observability/nimbus/gateway-tls.yaml)
 
-Gateway namespace; app-test.ns:80 must already be routed. This deliberately invalid Envoy timeout triggers CDS rejection; the previous valid configuration may remain active.
-
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: bad-connect-timeout
-spec:
-  configPatches:
-  - applyTo: CLUSTER
-    match:
-      context: GATEWAY
-      cluster:
-        service: app-test.ns.svc.cluster.local
-        portNumber: 80
-    patch:
-      operation: MERGE
-      value:
-        connect_timeout: -1s
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-tls.yaml --ignore-not-found --wait=true
 ```
 
-## Gateway CPU or memory pressure
+## Gateway Overflow
 
-`container_cpu_usage_seconds_total` · `container_memory_working_set_bytes` · `kube_pod_container_status_restarts_total`
+The dedicated obs-gateway receives automatic traffic. The existing gateway-blue stays untouched.
 
-Apply as a strategic merge patch to the lab gateway. Under load, very small limits can cause throttling or OOM/restarts. Confirm termination reasons; CPU usage alone is not proof.
+- **Metric:** `envoy_cluster_upstream_rq_pending_overflow`.
+- **Dashboard:** **Mesh Istio - Gateway** → **Pending request overflow per second**.
+- **Filter:** namespace `playground-nimbus-istio-gateway`, Pod `obs-gateway-*`; upstream diagnostics use the `obs-gateway-*.playground-nimbus-istio-enabled.svc.cluster.local` cluster. For Runtime CPU panels select container `istio-proxy`.
 
-**Deployment patch · existing gateway-blue**
+**Expected:** Gateway rejects excess concurrent requests with 503/UO.
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: gateway-blue
-spec:
-  template:
-    spec:
-      containers:
-      - name: istio-proxy
-        resources:
-          requests:
-            cpu: 10m
-            memory: 16Mi
-          limits:
-            cpu: 10m
-            memory: 16Mi
+[Open complete YAML](../../labs/observability/nimbus/gateway-overflow.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-overflow.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/gateway-overflow.yaml
+```
+
+Cleanup before the next scenario:
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-overflow.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-overflow.yaml --ignore-not-found --wait=true
+```
+
+## Gateway Reject
+
+The dedicated obs-gateway receives automatic traffic. The existing gateway-blue stays untouched.
+
+- **Metric:** `envoy_cluster_manager_cds_update_rejected`.
+- **Dashboard:** **Mesh Istio - Gateway** → **CDS updates rejected per interval**.
+- **Filter:** namespace `playground-nimbus-istio-gateway`, Pod `obs-gateway-*`; upstream diagnostics use the `obs-gateway-*.playground-nimbus-istio-enabled.svc.cluster.local` cluster. For Runtime CPU panels select container `istio-proxy`.
+
+**Expected:** A CDS rejection counter increases if the invalid field passes admission.
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-reject.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-reject.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/gateway-reject.yaml
+```
+
+Cleanup before the next scenario:
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-reject.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-reject.yaml --ignore-not-found --wait=true
+```
+
+The deliberately invalid Envoy timeout may be rejected by admission in versions that validate it earlier. In that case no CDS NACK reaches Envoy; the admission error is the result. Do not claim the metric changed without checking it.
+
+## Gateway Pressure
+
+The dedicated obs-gateway receives automatic traffic. The existing gateway-blue stays untouched.
+
+- **Metric:** `container_cpu_cfs_throttled_seconds_total`.
+- **Dashboard:** **Workload - Runtime** → **Throttled CPU time per second**.
+- **Filter:** namespace `playground-nimbus-istio-gateway`, Pod `obs-gateway-*`; upstream diagnostics use the `obs-gateway-*.playground-nimbus-istio-enabled.svc.cluster.local` cluster. For Runtime CPU panels select container `istio-proxy`.
+
+**Expected:** Sustained automatic traffic exercises the dedicated gateway with a 10m CPU limit; inspect throttled time, not just CPU usage.
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-pressure.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-pressure.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/gateway-pressure.yaml
+```
+
+Cleanup before the next scenario:
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-pressure.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-pressure.yaml --ignore-not-found --wait=true
+```
+
+CPU throttling depends on actual load and node scheduling. The manifest requests 10m and limits the dedicated proxy to 10m, with 20 concurrent workers. Do not interpret low CPU usage alone as throttling.
+
+## Gateway Warming
+
+The dedicated obs-gateway receives automatic traffic. The existing gateway-blue stays untouched.
+
+- **Metric:** `envoy_listener_manager_total_listeners_warming`.
+- **Dashboard:** **Mesh Istio - Gateway** → **Warming listeners**.
+- **Filter:** namespace `playground-nimbus-istio-gateway`, Pod `obs-gateway-*`; upstream diagnostics use the `obs-gateway-*.playground-nimbus-istio-enabled.svc.cluster.local` cluster. For Runtime CPU panels select container `istio-proxy`.
+
+**Expected:** The new 8443 listener waits for the absent obs-missing-cert. HTTP traffic on 8080 continues independently.
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-warming.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-warming.yaml --ignore-not-found --wait=true
+kubectl apply -f labs/observability/nimbus/gateway-warming.yaml
+```
+
+Cleanup before the next scenario:
+
+[Open complete YAML](../../labs/observability/nimbus/gateway-warming.yaml)
+
+```bash
+kubectl delete -f labs/observability/nimbus/gateway-warming.yaml --ignore-not-found --wait=true
 ```

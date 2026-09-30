@@ -24,3 +24,5 @@
 - [xDS](docs/observability/XDS.md)
 - [Gateway](docs/observability/GATEWAY.md)
 - [Workload](docs/observability/WORKLOAD.md)
+
+Nimbus observability labs: the [xDS](docs/observability/XDS.md), [Gateway](docs/observability/GATEWAY.md) and [Workload](docs/observability/WORKLOAD.md) guides link complete manifests under `labs/observability/nimbus/`. Each includes namespaces and an automatic bounded traffic Job. Run one at a time and use its cleanup command. Shared-control-plane disruptions are explicitly excluded from participant apply-ready manifests.
