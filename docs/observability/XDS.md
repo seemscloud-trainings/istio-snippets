@@ -1,6 +1,6 @@
 # Xds — Nimbus observability labs
 
-(https://jimmysong.io/blog/envoy-archiecture-and-terminology/)[safdasdfafds]
+https://jimmysong.io/blog/envoy-archiecture-and-terminology/
 
 ## Churn
 
