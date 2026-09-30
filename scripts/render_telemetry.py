@@ -58,9 +58,9 @@ def main():
     content = '\n\n'.join([
         '#### Access logs + metrics + tracing',
         '```yaml\n' + dump_documents([resource]).strip() + '\n```',
-        '![Telemetry: error logs, request counters and trace sampling](images/telemetry/default.png)',
+        '![Telemetry: error logs, request counters and trace sampling](../../images/telemetry/default.png)',
     ]) + '\n'
-    page = ROOT / 'TELEMETRY.md'
+    page = ROOT / "docs/components" / 'TELEMETRY.md'
     output = ROOT / 'images/telemetry/default.png'
     picture = render(resource)
     if args.check:

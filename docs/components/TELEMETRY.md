@@ -25,4 +25,4 @@ spec:
     randomSamplingPercentage: 10
 ```
 
-![Telemetry: error logs, request counters and trace sampling](images/telemetry/default.png)
+![Telemetry: error logs, request counters and trace sampling](../../images/telemetry/default.png)

@@ -214,10 +214,10 @@ def main():
         update_image(output, draw(example, resources), args.check)
         pages.setdefault(example.topic, []).extend([
             f"#### {example.title}", "```yaml\n" + dump_documents(resources).rstrip() + "\n```",
-            f"![{example.title}]({output.relative_to(ROOT).as_posix()})",
+            f"![{example.title}](../../{output.relative_to(ROOT).as_posix()})",
         ])
     for topic, parts in pages.items():
-        output = ROOT / f"{topic.upper()}.md"
+        output = ROOT / "docs/components" / f"{topic.upper()}.md"
         content = "\n\n".join(parts) + "\n"
         if args.check:
             if not output.is_file() or output.read_text() != content:

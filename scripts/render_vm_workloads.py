@@ -95,7 +95,7 @@ export ISTIO_REVISION=green
 export VM_USER=ubuntu
 istioctl version --remote=false"""),
         code("yaml", dump_documents(yaml.safe_load_all((VM / "workload-group.yaml").read_text()))),
-        "![WorkloadGroup: one service, three VM instances](images/vm-workloads/workload-group.png)",
+        "![WorkloadGroup: one service, three VM instances](../../images/vm-workloads/workload-group.png)",
         '#### Register + bootstrap',
         code("bash", "kubectl apply -f vm-workloads/workload-group.yaml"),
         code("bash", script("group-bootstrap.sh")),
@@ -123,7 +123,7 @@ kubectl exec vm-client -c vm-client -- curl -sS http://wp.pl"""),
         code("bash", "kubectl create token shared-app --audience=istio-ca --duration=1h > .local/vm-group/vm1/istio-token"),
         "## 2. WorkloadEntry — three applications on three VMs",
         code("yaml", dump_documents(yaml.safe_load_all((VM / "workload-entry.yaml").read_text()))),
-        "![WorkloadEntry: three separate VM services](images/vm-workloads/workload-entry.png)",
+        "![WorkloadEntry: three separate VM services](../../images/vm-workloads/workload-entry.png)",
         '#### Register + bootstrap',
         code("bash", "kubectl apply -f vm-workloads/workload-entry.yaml"),
         code("bash", script("entry-bootstrap.sh")),
@@ -162,7 +162,7 @@ def main():
         else:
             output.parent.mkdir(parents=True, exist_ok=True)
             image.save(output, "PNG", optimize=True)
-    page = ROOT / "VM-WORKLOADS.md"
+    page = ROOT / "docs/components" / "VM-WORKLOADS.md"
     content = docs()
     if args.check:
         if page.read_text() != content:

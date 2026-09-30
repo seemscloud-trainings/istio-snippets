@@ -77,7 +77,7 @@ spec:
     ISTIO_META_DNS_CAPTURE: 'true'
 ```
 
-![WorkloadGroup: one service, three VM instances](images/vm-workloads/workload-group.png)
+![WorkloadGroup: one service, three VM instances](../../images/vm-workloads/workload-group.png)
 
 #### Register + bootstrap
 
@@ -283,7 +283,7 @@ spec:
     ISTIO_META_DNS_CAPTURE: 'true'
 ```
 
-![WorkloadEntry: three separate VM services](images/vm-workloads/workload-entry.png)
+![WorkloadEntry: three separate VM services](../../images/vm-workloads/workload-entry.png)
 
 #### Register + bootstrap
 

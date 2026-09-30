@@ -1,12 +1,17 @@
-- [Service Entry](SERVICE-ENTRY.md)
-- [VirtualService](VIRTUAL-SERVICE.md)
-- [Gateway + VirtualService](GATEWAY.md)
-- [Gateway gRPC](GATEWAY-GRPC.md)
-- [Sidecar](SIDECAR.md)
-- [ProxyConfig](PROXY-CONFIG.md)
-- [Telemetry](TELEMETRY.md)
-- [CronJob](CRONJOB.md)
-- [istioctl](ISTIOCTL.md)
-- [WorkloadGroup + WorkloadEntry](VM-WORKLOADS.md)
-- [AuthorizationPolicy + PeerAuthentication](PEER-AUTHORIZATION.md)
-- [RequestAuthentication + AuthorizationPolicy](REQUEST-AUTHORIZATION.md)
+# Components
+
+- [Service Entry](docs/components/SERVICE-ENTRY.md)
+- [VirtualService](docs/components/VIRTUAL-SERVICE.md)
+- [Gateway + VirtualService](docs/components/GATEWAY.md)
+- [Gateway gRPC](docs/components/GATEWAY-GRPC.md)
+- [Sidecar](docs/components/SIDECAR.md)
+- [ProxyConfig](docs/components/PROXY-CONFIG.md)
+- [Telemetry](docs/components/TELEMETRY.md)
+- [CronJob](docs/components/CRONJOB.md)
+- [WorkloadGroup + WorkloadEntry](docs/components/VM-WORKLOADS.md)
+- [AuthorizationPolicy + PeerAuthentication](docs/components/PEER-AUTHORIZATION.md)
+- [RequestAuthentication + AuthorizationPolicy](docs/components/REQUEST-AUTHORIZATION.md)
+
+# Management
+
+- [istioctl](docs/management/ISTIOCTL.md)

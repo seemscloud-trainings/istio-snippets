@@ -39,4 +39,4 @@ global:
       enabled: true
 ```
 
-![CronJob: proxy readiness, successful completion and request failure](images/cronjob/native-sidecar.png)
+![CronJob: proxy readiness, successful completion and request failure](../../images/cronjob/native-sidecar.png)

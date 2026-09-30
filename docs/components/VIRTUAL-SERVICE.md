@@ -39,7 +39,7 @@ spec:
         consecutive5xxErrors: 0
 ```
 
-![Subsets](images/virtual-service/host.png)
+![Subsets](../../images/virtual-service/host.png)
 
 #### No retry
 
@@ -83,7 +83,7 @@ spec:
     timeout: 10s
 ```
 
-![No retry](images/virtual-service/no-retry.png)
+![No retry](../../images/virtual-service/no-retry.png)
 
 #### Retry
 
@@ -116,7 +116,7 @@ spec:
     timeout: 10s
 ```
 
-![Retry](images/virtual-service/retry.png)
+![Retry](../../images/virtual-service/retry.png)
 
 #### Per-try timeout
 
@@ -149,7 +149,7 @@ spec:
     timeout: 3s
 ```
 
-![Per-try timeout](images/virtual-service/retry-timeout.png)
+![Per-try timeout](../../images/virtual-service/retry-timeout.png)
 
 #### Fault abort
 
@@ -184,7 +184,7 @@ spec:
           value: 50
 ```
 
-![Fault abort](images/virtual-service/fault-abort.png)
+![Fault abort](../../images/virtual-service/fault-abort.png)
 
 #### Fault delay
 
@@ -233,7 +233,7 @@ spec:
           value: 100
 ```
 
-![Fault delay](images/virtual-service/fault-delay.png)
+![Fault delay](../../images/virtual-service/fault-delay.png)
 
 #### Header match
 
@@ -285,7 +285,7 @@ spec:
     timeout: 10s
 ```
 
-![Header match](images/virtual-service/header-fault.png)
+![Header match](../../images/virtual-service/header-fault.png)
 
 #### Connection pool
 
@@ -315,7 +315,7 @@ spec:
     timeout: 10s
 ```
 
-![Connection pool](images/virtual-service/connections.png)
+![Connection pool](../../images/virtual-service/connections.png)
 
 #### Request timeout
 
@@ -345,7 +345,7 @@ spec:
     timeout: 1s
 ```
 
-![Request timeout](images/virtual-service/timeout.png)
+![Request timeout](../../images/virtual-service/timeout.png)
 
 #### Outlier detection
 
@@ -372,7 +372,7 @@ spec:
     timeout: 10s
 ```
 
-![Outlier detection](images/virtual-service/outlier.png)
+![Outlier detection](../../images/virtual-service/outlier.png)
 
 #### Local rate limit
 
@@ -464,4 +464,4 @@ spec:
                 value: 'true'
 ```
 
-![Local rate limit](images/virtual-service/rate-limit.png)
+![Local rate limit](../../images/virtual-service/rate-limit.png)

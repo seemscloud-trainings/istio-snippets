@@ -53,7 +53,7 @@ def docs():
         resources = yaml.safe_load_all((ROOT / 'gateway-grpc' / f'{name}.yaml').read_text())
         sections.append('```yaml\n' + dump_documents(resources).strip() + '\n```')
     sections.extend([
-        '![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](images/gateway-grpc/flow.png)',
+        '![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](../../images/gateway-grpc/flow.png)',
         '#### TLS Secret',
         '```bash\nkubectl create secret tls grpc-end-gw-tls --cert=wp.pl.crt --key=wp.pl.key --dry-run=client -o yaml | kubectl apply -f -\nkubectl apply -f gateway-grpc/app.yaml -f gateway-grpc/gateway.yaml\n```',
         '#### Request',
@@ -67,7 +67,7 @@ def main():
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
     output = ROOT / 'images/gateway-grpc/flow.png'
-    page = ROOT / 'GATEWAY-GRPC.md'
+    page = ROOT / "docs/components" / 'GATEWAY-GRPC.md'
     picture = render()
     if args.check:
         with Image.open(output) as old:

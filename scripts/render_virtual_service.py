@@ -126,7 +126,7 @@ def main():
     def section(slug, title, objects, settings, cases):
         text = dump_documents(objects).rstrip()
         parts.extend([f"#### {title}", "```yaml\n" + text + "\n```",
-                      f"![{title}](images/virtual-service/{slug}.png)"])
+                      f"![{title}](../../images/virtual-service/{slug}.png)"])
         write_image(slug, render(slug, settings, cases), args.check)
 
     section("host", "Subsets", [dr],
@@ -160,7 +160,7 @@ def main():
         elif slug == "rate-limit":
             settings.append("EnvoyFilter: 3 tokens / 10 s per inbound Envoy")
         section(slug, title, [snippet, ef] if slug == "rate-limit" else [snippet], settings, cases)
-    path = ROOT / "VIRTUAL-SERVICE.md"
+    path = ROOT / "docs/components" / "VIRTUAL-SERVICE.md"
     text = "\n\n".join(parts) + "\n"
     if args.check:
         if path.read_text() != text:

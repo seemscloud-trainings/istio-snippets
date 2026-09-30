@@ -105,7 +105,7 @@ spec:
           number: 9000
 ```
 
-![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](images/gateway-grpc/flow.png)
+![gRPC gateway: TLS termination, HTTP/2 backend and plaintext redirect](../../images/gateway-grpc/flow.png)
 
 #### TLS Secret
 

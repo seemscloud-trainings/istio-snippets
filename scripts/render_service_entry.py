@@ -179,7 +179,7 @@ def documentation() -> str:
         parts.extend([
             f"#### {example.title}",
             "```yaml\n" + dump_documents(yaml.safe_load_all((ROOT / relative).read_text())).rstrip() + "\n```",
-            f"![{example.title}](images/service-entry/{example.slug}.png)",
+            f"![{example.title}](../../images/service-entry/{example.slug}.png)",
         ])
     return "\n\n".join(parts) + "\n"
 
@@ -205,7 +205,7 @@ def main() -> None:
             output.parent.mkdir(parents=True, exist_ok=True)
             image.save(output, "PNG", optimize=True)
             print(output.relative_to(ROOT))
-    page = ROOT / "SERVICE-ENTRY.md"
+    page = ROOT / "docs/components" / "SERVICE-ENTRY.md"
     content = documentation()
     if args.check:
         if not page.is_file() or page.read_text() != content:

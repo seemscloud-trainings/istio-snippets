@@ -69,10 +69,10 @@ def main():
         sections.extend([
             f'#### gateway-{color}',
             '```yaml\n' + dump_documents(resources).strip() + '\n```',
-            f'![Gateway {color} binding and request flow](images/gateway/{color}.png)',
+            f'![Gateway {color} binding and request flow](../../images/gateway/{color}.png)',
         ])
     content = '\n\n'.join(sections) + '\n'
-    page = ROOT / 'GATEWAY.md'
+    page = ROOT / "docs/components" / 'GATEWAY.md'
     if args.check:
         assert page.read_text() == content, page
         print('Gateway-blue HTTPS and redirect diagram match the manifest.')

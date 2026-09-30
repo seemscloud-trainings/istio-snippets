@@ -47,9 +47,9 @@ def main():
         '```yaml\n' + dump_documents([resource]).strip() + '\n```',
         '#### Istiod Helm · startup probe',
         '```yaml\nglobal:\n  proxy:\n    startupProbe:\n      enabled: true\n```',
-        '![CronJob: proxy readiness, successful completion and request failure](images/cronjob/native-sidecar.png)',
+        '![CronJob: proxy readiness, successful completion and request failure](../../images/cronjob/native-sidecar.png)',
     ]) + '\n'
-    page = ROOT / 'CRONJOB.md'
+    page = ROOT / "docs/components" / 'CRONJOB.md'
     output = ROOT / 'images/cronjob/native-sidecar.png'
     picture = render()
     if args.check:

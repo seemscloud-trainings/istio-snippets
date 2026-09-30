@@ -41,4 +41,4 @@ spec:
           number: 80
 ```
 
-![Gateway blue binding and request flow](images/gateway/blue.png)
+![Gateway blue binding and request flow](../../images/gateway/blue.png)
